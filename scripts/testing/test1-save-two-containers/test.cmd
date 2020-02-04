@@ -16,3 +16,5 @@ docker run -d --rm --name dback-test1.2 ^
 	-v %CD%\data\mount-dir:/mount ^
 	docker:19.03.5 ^
 	tail -f /dev/null  || exit /b
+
+docker run -it --rm -v //var/run/docker.sock:/var/run/docker.sock dback dback || exit /b

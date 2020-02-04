@@ -1,1 +1,1 @@
-echo Hello
+docker ps -a
