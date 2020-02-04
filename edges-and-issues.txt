@@ -1,0 +1,1 @@
+A volume mounted to multiple containers. We are must stop all containers that mount the volume, for backup volume.
