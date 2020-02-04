@@ -1,2 +1,2 @@
 cd %~dp0
-call testing\run-test-containers
+call testing\test1-save-two-containers\test.cmd
