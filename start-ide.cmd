@@ -4,7 +4,7 @@ call scripts\setenv
 cd %~dp0
 
 echo ***************************************************
-echo Type "test" for process testing, change something, and run tests again. Repeat if required)
+echo Type "iter" for build and test, change something, and run tests again. Repeat if required)
 echo Find out all commands in "scripts" directory
 echo ***************************************************
 
