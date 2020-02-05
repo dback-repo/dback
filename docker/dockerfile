@@ -1,3 +1,5 @@
 FROM docker:19.03.5
 COPY dback /bin/dback
+
+ENV DOCKER_API_VERSION 1.37
 ENTRYPOINT exec /bin/dback
