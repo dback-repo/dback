@@ -17,6 +17,7 @@
   "dependencies": {
     "concurrently": "^4.1.1",
     "go-win": "1.0.0",
-    "liteide": "1.0.0"
+    "liteide": "1.0.0",
+    "upx-win": "^1.0.0"
   }
 }

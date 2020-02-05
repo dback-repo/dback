@@ -4,6 +4,7 @@ set GOPATH=%REPO%\go-app
 set GOROOT=%REPO%\node_modules\go-win
 set PATH=%PATH%;%GOPATH%\bin
 set PATH=%PATH%;%GOROOT%\bin
+set PATH=%PATH%;%REPO%\node_modules\upx-win
 set PATH=%PATH%;%REPO%\node_modules\liteide\bin
 set PATH=%PATH%;%REPO%\node_modules\.bin
 set PATH=%PATH%;%REPO%\scripts
