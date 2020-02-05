@@ -1,3 +1,11 @@
 cd %~dp0\..
 set REPO=%cd%
+set GOPATH=%REPO%\go-app
+set GOROOT=%REPO%\node_modules\go-win
+set PATH=%PATH%;%GOPATH%\bin
+set PATH=%PATH%;%GOROOT%\bin
+set PATH=%PATH%;%REPO%\node_modules\liteide\bin
+set PATH=%PATH%;%REPO%\node_modules\.bin
 set PATH=%PATH%;%REPO%\scripts
+set PATH=%PATH%;%REPO%\examples\websocket\scripts
+set DOCKER_API_VERSION=1.37

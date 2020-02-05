@@ -1,1 +1,4 @@
 /node_modules
+*.exe
+/docker/dback
+/go-app/pkg/

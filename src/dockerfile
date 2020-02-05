@@ -1,7 +1,0 @@
-FROM docker:19.03.5
-COPY ./dback.sh /bin/dback.sh
-
-RUN apk update && apk add dos2unix && dos2unix /bin/dback.sh
-
-
-ENTRYPOINT exec /bin/dback.sh
