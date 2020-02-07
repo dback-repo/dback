@@ -2,3 +2,4 @@
 *.exe
 /docker/dback
 /go-app/pkg/
+*.tar
