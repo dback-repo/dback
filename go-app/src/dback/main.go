@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"sync"
 
 	"github.com/docker/docker/api/types"
@@ -24,4 +25,5 @@ func main() {
 	}
 
 	wg.Wait()
+	log.Println(`Backup success`)
 }

@@ -4,8 +4,6 @@ import (
 	"archive/tar"
 	"context"
 	"io"
-
-	//	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -23,13 +21,6 @@ func check(err error) {
 
 //https://medium.com/@skdomino/taring-untaring-files-in-go-6b07cf56bc07
 func Untar(r io.Reader, dst string) error {
-
-	// gzr, err := gzip.NewReader(r)
-	// if err != nil {
-	// 	return err
-	// }
-	// defer gzr.Close()
-
 	tr := tar.NewReader(r)
 
 	for {

@@ -26,18 +26,19 @@ const clearTmp = function(){
 	createFolder('tmp')
 }
 
+const initVolumeWithFile = function(){
+	try {cmd('docker volume rm dback-test-1.2-volume')}catch{}
+	cmd('docker volume create dback-test-1.2-volume')
+	moveFileToDockerVolume('data/file1.txt','dback-test-1.2-volume')
+}
 
 
 clearTmp()
-
 try {cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3')}catch{}
-try {cmd('docker volume rm dback-test-1.2-volume')}catch{}
-cmd('docker volume create dback-test-1.2-volume')
-moveFileToDockerVolume('data/file1.txt','dback-test-1.2-volume')
-
+initVolumeWithFile()
 cmd('docker run -d --name dback-test-1.1 -v %CD%\\data\\mount-dir:/mount-dir nginx:1.17.8-alpine')
 cmd('docker run -d --name dback-test-1.2 -v %CD%\\data\\mount-dir:/mount-dir -v dback-test-1.2-volume:/mount-vol nginx:1.17.8-alpine')
 cmd('docker run -d --name dback-test-1.3 nginx:1.17.8-alpine')
-cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v %CD%\\tmp:/backup dback dback',{stdio: 'inherit'})
+cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v %CD%\\tmp:/backup dback',{stdio: 'inherit'})
 
 //docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v %CD%\tests\test1-save-two-containers\tmp:/backup dback dback

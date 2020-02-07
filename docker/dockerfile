@@ -2,4 +2,4 @@ FROM scratch
 COPY dback /bin/dback
 
 ENV DOCKER_API_VERSION 1.37
-CMD ["/bin/dback"]
+ENTRYPOINT ["/bin/dback"]
