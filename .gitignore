@@ -3,3 +3,4 @@
 /docker/dback
 /go-app/pkg/
 *.tar
+/tests/test1-save-two-containers/tmp
