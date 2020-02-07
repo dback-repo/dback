@@ -108,11 +108,7 @@ func backupContainer(c types.Container, wg *sync.WaitGroup) {
 	check(err)
 	defer cli.Close()
 
-	// log.Println(c.State)
-	// log.Println(c.Status)
-
 	if c.State == `running` {
-
 		timeout := time.Minute
 		check(cli.ContainerStop(context.Background(), c.ID, &timeout))
 
