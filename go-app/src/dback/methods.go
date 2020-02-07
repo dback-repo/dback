@@ -109,17 +109,19 @@ func backupContainer(c types.Container, wg *sync.WaitGroup) {
 	defer cli.Close()
 
 	if c.State == `running` {
-		timeout := time.Minute
-		check(cli.ContainerStop(context.Background(), c.ID, &timeout))
+		if len(c.Mounts) > 0 {
+			timeout := time.Minute
+			check(cli.ContainerStop(context.Background(), c.ID, &timeout))
 
-		var wgMount sync.WaitGroup
-		wgMount.Add(len(c.Mounts))
-		for _, curMount := range c.Mounts {
-			go backupMount(c, curMount, &wgMount)
+			var wgMount sync.WaitGroup
+			wgMount.Add(len(c.Mounts))
+			for _, curMount := range c.Mounts {
+				go backupMount(c, curMount, &wgMount)
+			}
+			wgMount.Wait()
+
+			check(cli.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}))
 		}
-		wgMount.Wait()
-
-		check(cli.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}))
 	}
 
 }
