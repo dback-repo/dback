@@ -2,6 +2,8 @@
 cd %~dp0
 call scripts\setenv
 cd %~dp0
+call scripts\check-commands || exit /b
+cd %~dp0
 
 call npm i
 
