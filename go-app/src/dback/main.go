@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+	log.Println(`Backup started`)
 	cli, err := client.NewEnvClient()
 	check(err)
 	defer cli.Close()

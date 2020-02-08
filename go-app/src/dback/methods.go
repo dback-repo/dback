@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"context"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -90,6 +91,7 @@ func backupMount(c types.Container, m types.MountPoint, wg *sync.WaitGroup) {
 	check(err)
 
 	check(Untar(reader, `/backup/`+c.Names[0]))
+	log.Println(c.Names[0] + m.Destination)
 }
 
 func backupContainer(c types.Container, wg *sync.WaitGroup) {
@@ -101,18 +103,23 @@ func backupContainer(c types.Container, wg *sync.WaitGroup) {
 
 	if c.State == `running` {
 		if len(c.Mounts) > 0 {
-			timeout := time.Minute
-			check(cli.ContainerStop(context.Background(), c.ID, &timeout))
+			inspect, err := cli.ContainerInspect(context.Background(), c.ID)
+			check(err)
 
-			var wgMount sync.WaitGroup
-			wgMount.Add(len(c.Mounts))
-			for _, curMount := range c.Mounts {
-				go backupMount(c, curMount, &wgMount)
+			if inspect.HostConfig.AutoRemove == false {
+				timeout := time.Minute
+				check(cli.ContainerStop(context.Background(), c.ID, &timeout))
+
+				var wgMount sync.WaitGroup
+				wgMount.Add(len(c.Mounts))
+				for _, curMount := range c.Mounts {
+					go backupMount(c, curMount, &wgMount)
+				}
+				wgMount.Wait()
+
+				check(cli.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}))
 			}
-			wgMount.Wait()
 
-			check(cli.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}))
 		}
 	}
-
 }
