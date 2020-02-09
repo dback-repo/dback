@@ -2,9 +2,10 @@ package main
 
 import (
 	"io/ioutil"
+	"sync"
 )
 
-//list of containers == list of folders in /backup
+//list of saved containers == list of folders in /backup
 func getBackupsContainerList() []string {
 	var res []string
 	files, err := ioutil.ReadDir(`/backup`)
@@ -15,6 +16,17 @@ func getBackupsContainerList() []string {
 		}
 	}
 	return res
+}
+
+func restoreContainers(containers []string) {
+	var wg sync.WaitGroup
+	wg.Add(len(containers))
+
+	for _, curContainer := range containers {
+		go restoreContainer(curContainer, &wg)
+	}
+
+	wg.Wait()
 }
 
 // func check(err error) {
@@ -109,32 +121,32 @@ func getBackupsContainerList() []string {
 // 	log.Println(c.Names[0] + m.Destination)
 // }
 
-// func backupContainer(c types.Container, wg *sync.WaitGroup) {
-// 	defer wg.Done()
+func restoreContainer(containerName string, wg *sync.WaitGroup) {
+	defer wg.Done()
 
-// 	cli, err := client.NewEnvClient()
-// 	check(err)
-// 	defer cli.Close()
+	// cli, err := client.NewEnvClient()
+	// check(err)
+	// defer cli.Close()
 
-// 	if c.State == `running` {
-// 		if len(c.Mounts) > 0 {
-// 			inspect, err := cli.ContainerInspect(context.Background(), c.ID)
-// 			check(err)
+	// if c.State == `running` {
+	// 	if len(c.Mounts) > 0 {
+	// 		inspect, err := cli.ContainerInspect(context.Background(), c.ID)
+	// 		check(err)
 
-// 			if inspect.HostConfig.AutoRemove == false {
-// 				timeout := time.Minute
-// 				check(cli.ContainerStop(context.Background(), c.ID, &timeout))
+	// 		if inspect.HostConfig.AutoRemove == false {
+	// 			timeout := time.Minute
+	// 			check(cli.ContainerStop(context.Background(), c.ID, &timeout))
 
-// 				var wgMount sync.WaitGroup
-// 				wgMount.Add(len(c.Mounts))
-// 				for _, curMount := range c.Mounts {
-// 					go backupMount(c, curMount, &wgMount)
-// 				}
-// 				wgMount.Wait()
+	// 			var wgMount sync.WaitGroup
+	// 			wgMount.Add(len(c.Mounts))
+	// 			for _, curMount := range c.Mounts {
+	// 				go backupMount(c, curMount, &wgMount)
+	// 			}
+	// 			wgMount.Wait()
 
-// 				check(cli.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}))
-// 			}
+	// 			check(cli.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}))
+	// 		}
 
-// 		}
-// 	}
-// }
+	// 	}
+	// }
+}
