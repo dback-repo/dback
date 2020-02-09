@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -85,12 +86,24 @@ func backupMount(c types.Container, m types.MountPoint, wg *sync.WaitGroup) {
 	check(err)
 	defer cli.Close()
 
-	check(os.MkdirAll(`/backup/`+c.Names[0], 0664))
+	check(os.MkdirAll(`/backup/`+c.Names[0]+m.Destination, 0664))
 
 	reader, _, err := cli.CopyFromContainer(context.Background(), c.ID, m.Destination)
 	check(err)
 
-	check(Untar(reader, `/backup/`+c.Names[0]))
+	lastSlashIdx := strings.LastIndex(m.Destination, `/`)
+	// if lastSlashIdx > 0 {
+	// 	lastSlashIdx--
+	// }
+	log.Println(`lastSlashIdx`, lastSlashIdx)
+	destParent := m.Destination[:lastSlashIdx] // /var/www/lynx -> /var/www
+	if destParent == `` {
+		destParent = `/`
+	}
+	log.Println(`dest`, m.Destination)
+	log.Println(`destParent`, destParent)
+
+	check(Untar(reader, `/backup/`+c.Names[0]+destParent))
 	log.Println(c.Names[0] + m.Destination)
 }
 
