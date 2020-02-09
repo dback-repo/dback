@@ -1,8 +1,14 @@
 package main
 
 import (
+	"context"
 	"io/ioutil"
 	"sync"
+	"time"
+
+	"github.com/docker/docker/api/types"
+
+	"github.com/docker/docker/client"
 )
 
 //list of saved containers == list of folders in /backup
@@ -29,124 +35,79 @@ func restoreContainers(containers []string) {
 	wg.Wait()
 }
 
-// func check(err error) {
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// }
+func restoreMount(c types.Container, m types.MountPoint, wg *sync.WaitGroup) {
+	defer wg.Done()
+	cli, err := client.NewEnvClient()
+	check(err)
+	defer cli.Close()
 
-// //https://medium.com/@skdomino/taring-untaring-files-in-go-6b07cf56bc07
-// func Untar(r io.Reader, dst string) error {
-// 	tr := tar.NewReader(r)
+	check(cli.CopyToContainer(context.Background(), c.ID, ``, rdr, types.CopyToContainerOptions{true, false}))
 
-// 	for {
-// 		header, err := tr.Next()
+	// 	check(os.MkdirAll(`/backup/`+c.Names[0]+m.Destination, 0664))
 
-// 		switch {
+	// 	reader, _, err := cli.CopyFromContainer(context.Background(), c.ID, m.Destination)
+	// 	check(err)
 
-// 		// if no more files are found return
-// 		case err == io.EOF:
-// 			return nil
+	// 	lastSlashIdx := strings.LastIndex(m.Destination, `/`)
+	// 	// if lastSlashIdx > 0 {
+	// 	// 	lastSlashIdx--
+	// 	// }
+	// 	log.Println(`lastSlashIdx`, lastSlashIdx)
+	// 	destParent := m.Destination[:lastSlashIdx] // /var/www/lynx -> /var/www
+	// 	if destParent == `` {
+	// 		destParent = `/`
+	// 	}
+	// 	log.Println(`dest`, m.Destination)
+	// 	log.Println(`destParent`, destParent)
 
-// 		// return any other error
-// 		case err != nil:
-// 			return err
+	// 	check(Untar(reader, `/backup/`+c.Names[0]+destParent))
+	// 	log.Println(c.Names[0] + m.Destination)
+}
 
-// 		// if the header is nil, just skip it (not sure how this happens)
-// 		case header == nil:
-// 			continue
-// 		}
-
-// 		// the target location where the dir/file should be created
-// 		target := filepath.Join(dst, header.Name)
-
-// 		// the following switch could also be done using fi.Mode(), not sure if there
-// 		// a benefit of using one vs. the other.
-// 		// fi := header.FileInfo()
-
-// 		// check the file type
-// 		switch header.Typeflag {
-
-// 		// if its a dir and it doesn't exist create it
-// 		case tar.TypeDir:
-// 			if _, err := os.Stat(target); err != nil {
-// 				if err := os.MkdirAll(target, 0755); err != nil {
-// 					return err
-// 				}
-// 			}
-
-// 		// if it's a file create it
-// 		case tar.TypeReg:
-// 			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
-// 			if err != nil {
-// 				return err
-// 			}
-
-// 			// copy over contents
-// 			if _, err := io.Copy(f, tr); err != nil {
-// 				return err
-// 			}
-
-// 			// manually close here after each file operation; defering would cause each file close
-// 			// to wait until all operations have completed.
-// 			f.Close()
-// 		}
-// 	}
-// }
-
-// func backupMount(c types.Container, m types.MountPoint, wg *sync.WaitGroup) {
-// 	defer wg.Done()
-// 	cli, err := client.NewEnvClient()
-// 	check(err)
-// 	defer cli.Close()
-
-// 	check(os.MkdirAll(`/backup/`+c.Names[0]+m.Destination, 0664))
-
-// 	reader, _, err := cli.CopyFromContainer(context.Background(), c.ID, m.Destination)
-// 	check(err)
-
-// 	lastSlashIdx := strings.LastIndex(m.Destination, `/`)
-// 	// if lastSlashIdx > 0 {
-// 	// 	lastSlashIdx--
-// 	// }
-// 	log.Println(`lastSlashIdx`, lastSlashIdx)
-// 	destParent := m.Destination[:lastSlashIdx] // /var/www/lynx -> /var/www
-// 	if destParent == `` {
-// 		destParent = `/`
-// 	}
-// 	log.Println(`dest`, m.Destination)
-// 	log.Println(`destParent`, destParent)
-
-// 	check(Untar(reader, `/backup/`+c.Names[0]+destParent))
-// 	log.Println(c.Names[0] + m.Destination)
-// }
+//return nil if not found
+func getContainerByName(cli *client.Client, targetName string) *types.Container {
+	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
+	check(err)
+	for _, curContainer := range containers {
+		for _, curName := range curContainer.Names {
+			if curName == targetName {
+				return &curContainer
+			}
+		}
+	}
+	return nil
+}
 
 func restoreContainer(containerName string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	// cli, err := client.NewEnvClient()
-	// check(err)
-	// defer cli.Close()
+	cli, err := client.NewEnvClient()
+	check(err)
+	defer cli.Close()
 
-	// if c.State == `running` {
-	// 	if len(c.Mounts) > 0 {
-	// 		inspect, err := cli.ContainerInspect(context.Background(), c.ID)
-	// 		check(err)
+	c := getContainerByName(cli, containerName)
+	if c == nil {
+		return
+	}
 
-	// 		if inspect.HostConfig.AutoRemove == false {
-	// 			timeout := time.Minute
-	// 			check(cli.ContainerStop(context.Background(), c.ID, &timeout))
+	if c.State == `running` {
+		if len(c.Mounts) > 0 {
+			inspect, err := cli.ContainerInspect(context.Background(), c.ID)
+			check(err)
 
-	// 			var wgMount sync.WaitGroup
-	// 			wgMount.Add(len(c.Mounts))
-	// 			for _, curMount := range c.Mounts {
-	// 				go backupMount(c, curMount, &wgMount)
-	// 			}
-	// 			wgMount.Wait()
+			if inspect.HostConfig.AutoRemove == false {
+				timeout := time.Minute
+				check(cli.ContainerStop(context.Background(), c.ID, &timeout))
 
-	// 			check(cli.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}))
-	// 		}
+				var wgMount sync.WaitGroup
+				wgMount.Add(len(c.Mounts))
+				for _, curMount := range c.Mounts {
+					go restoreMount(*c, curMount, &wgMount)
+				}
+				wgMount.Wait()
 
-	// 	}
-	// }
+				check(cli.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}))
+			}
+		}
+	}
 }
