@@ -4,13 +4,11 @@
   "description": "dev dependencies for dback",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node scripts/build.js",
-    "iter": "node scripts/build.js && node scripts/test.js"
+    "setenv": "node scripts/setenv.js"
   },
   "repository": {
     "type": "git",
-    "url": "http://10.0.0.1:3000/root/dback.git"
+    "url": "https://github.com/dback-repo/dback.git"
   },
   "author": "alexander.eliseev",
   "license": "ISC",
