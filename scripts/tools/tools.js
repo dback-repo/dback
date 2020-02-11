@@ -7,13 +7,14 @@
 
 //Del \\?\D:\PET\dback2\NUL
 
-// module.exports = class Tools {
-//   // constructor(width) {
-//   //   this.width = width;
-//   // }
+module.exports = class Tools {
+	constructor()
+    {
+        this.type = "Tools";
+    }
 
-//   test() {
-//   	test
-//     //return this.width ** 2;
-//   }
-// };
+  test() {
+  	console.log(this.type);
+    //return this.width ** 2;
+  }
+};
