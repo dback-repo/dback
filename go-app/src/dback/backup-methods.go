@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
+	"io"
 	"log"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -29,19 +29,21 @@ func backupMount(c types.Container, m types.MountPoint, wg *sync.WaitGroup) {
 	reader, _, err := cli.CopyFromContainer(context.Background(), c.ID, m.Destination)
 	check(err)
 
-	lastSlashIdx := strings.LastIndex(m.Destination, `/`)
-	// if lastSlashIdx > 0 {
-	// 	lastSlashIdx--
-	// }
-	//log.Println(`lastSlashIdx`, lastSlashIdx)
-	destParent := m.Destination[:lastSlashIdx] // /var/www/lynx -> /var/www
-	if destParent == `` {
-		destParent = `/`
-	}
-	//log.Println(`dest`, m.Destination)
-	//log.Println(`destParent`, destParent)
+	outFile, err := os.Create(`/backup/` + c.Names[0] + m.Destination + `/tar.tar`)
+	check(err)
+	defer outFile.Close()
+	_, err = io.Copy(outFile, reader)
 
-	check(Untar(reader, `/backup/`+c.Names[0]+destParent))
+	// reader, _, err := cli.CopyFromContainer(context.Background(), c.ID, m.Destination)
+	// check(err)
+
+	// lastSlashIdx := strings.LastIndex(m.Destination, `/`)
+	// destParent := m.Destination[:lastSlashIdx] // /var/www/lynx -> /var/www
+	// if destParent == `` {
+	// 	destParent = `/`
+	// }
+
+	// check(Untar(reader, `/backup/`+c.Names[0]+destParent))
 	log.Println(c.Names[0] + m.Destination)
 }
 

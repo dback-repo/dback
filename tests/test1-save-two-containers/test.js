@@ -33,15 +33,16 @@ const initVolumeWithFile = function(volumeName, filename){
 }
 
 
-//clearTmp()
-// try {cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4')}catch{}
-// initVolumeWithFile('dback-test-1.2-volume','data/file1.txt')
-// initVolumeWithFile('dback-test-1.4-volume','data/file1.txt')
-// cmd('docker run -d --name dback-test-1.1 -v %CD%\\data\\mount-dir:/mount-dir nginx:1.17.8-alpine')
-// cmd('docker run -d --name dback-test-1.2 -v %CD%\\data\\mount-dir:/mount-dir -v dback-test-1.2-volume:/mount-vol nginx:1.17.8-alpine')
-// cmd('docker run -d --name dback-test-1.3 nginx:1.17.8-alpine')
-//cmd('docker run --rm -d --name dback-test-1.4 -v dback-test-1.4-volume:/mount-vol nginx:1.17.8-alpine')
-//cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v %CD%\\tmp:/backup dback backup',{stdio: 'inherit'})
+clearTmp()
+try {cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4')}catch{}
+initVolumeWithFile('dback-test-1.2-volume','data/file1.txt')
+initVolumeWithFile('dback-test-1.4-volume','data/file1.txt')
+cmd('docker run -d --name dback-test-1.1 -v %CD%\\data\\mount-dir:/mount-dir nginx:1.17.8-alpine')
+cmd('docker run -d --name dback-test-1.2 -v %CD%\\data\\mount-dir:/mount-dir -v dback-test-1.2-volume:/mount-vol nginx:1.17.8-alpine')
+cmd('docker run -d --name dback-test-1.3 nginx:1.17.8-alpine')
+cmd('docker run --rm -d --name dback-test-1.4 -v dback-test-1.4-volume:/mount-vol nginx:1.17.8-alpine')
+
+cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v %CD%\\tmp:/backup dback backup',{stdio: 'inherit'})
 cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v %CD%\\tmp:/backup dback restore',{stdio: 'inherit'})
 
-//docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v %REPO%\tests\test1-save-two-containers\tmp:/backup dback
+//docker run --rm -v //var/run/docker.sock:/var/run/docker.sock -v %REPO%\tests\test1-save-two-containers\tmp:/backup dback restore

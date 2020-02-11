@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"io/ioutil"
+	"log"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -41,27 +44,17 @@ func restoreMount(c types.Container, m types.MountPoint, wg *sync.WaitGroup) {
 	check(err)
 	defer cli.Close()
 
-	check(cli.CopyToContainer(context.Background(), c.ID, ``, rdr, types.CopyToContainerOptions{true, false}))
+	tar, err := os.Open(`/backup/` + c.Names[0] + m.Destination + `/tar.tar`)
+	check(err)
 
-	// 	check(os.MkdirAll(`/backup/`+c.Names[0]+m.Destination, 0664))
+	lastSlashIdx := strings.LastIndex(m.Destination, `/`)
+	destParent := m.Destination[:lastSlashIdx] //      "/var/www/lynx" -> "/var/www"        "/opt" -> "/"
+	if destParent == `` {
+		destParent = `/`
+	}
 
-	// 	reader, _, err := cli.CopyFromContainer(context.Background(), c.ID, m.Destination)
-	// 	check(err)
-
-	// 	lastSlashIdx := strings.LastIndex(m.Destination, `/`)
-	// 	// if lastSlashIdx > 0 {
-	// 	// 	lastSlashIdx--
-	// 	// }
-	// 	log.Println(`lastSlashIdx`, lastSlashIdx)
-	// 	destParent := m.Destination[:lastSlashIdx] // /var/www/lynx -> /var/www
-	// 	if destParent == `` {
-	// 		destParent = `/`
-	// 	}
-	// 	log.Println(`dest`, m.Destination)
-	// 	log.Println(`destParent`, destParent)
-
-	// 	check(Untar(reader, `/backup/`+c.Names[0]+destParent))
-	// 	log.Println(c.Names[0] + m.Destination)
+	check(cli.CopyToContainer(context.Background(), c.ID, destParent, tar, types.CopyToContainerOptions{true, false}))
+	log.Println(c.Names[0] + m.Destination)
 }
 
 //return nil if not found
@@ -70,7 +63,7 @@ func getContainerByName(cli *client.Client, targetName string) *types.Container 
 	check(err)
 	for _, curContainer := range containers {
 		for _, curName := range curContainer.Names {
-			if curName == targetName {
+			if curName == `/`+targetName {
 				return &curContainer
 			}
 		}
@@ -87,6 +80,7 @@ func restoreContainer(containerName string, wg *sync.WaitGroup) {
 
 	c := getContainerByName(cli, containerName)
 	if c == nil {
+		log.Println(`Container "` + containerName + `" not found`)
 		return
 	}
 

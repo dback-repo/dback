@@ -40,7 +40,7 @@ func main() {
 		log.Println(`Backup has finished for the mounts above`)
 	case `restore`:
 		log.Println(`Restore started`)
-		log.Println(getBackupsContainerList())
+		restoreContainers(getBackupsContainerList())
 		log.Println(`Restore has finished for the mounts above`)
 	case `help`:
 		fmt.Println("Here is no manual yet :(")
