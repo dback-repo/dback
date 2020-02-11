@@ -54,11 +54,8 @@
 
 
 
-var fs = require('fs');
-var out = fs.openSync('./out.log', 'a');
-var err = fs.openSync('./out.log', 'a');
-
-var cp = require('child_process');
-var MANFILE='setenv.js';
-var child = cp.spawn('cmd', ['/c start cmd'], { detached: true, stdio: [ 'ignore', out, err ] });
-child.unref();
+var fs = require('fs')
+var out = fs.openSync('.', 'a')
+var cp = require('child_process')
+var child = cp.spawn('cmd', ['/c start cmd'], { detached: true, stdio: [ 'ignore', out, out ] })
+child.unref()
