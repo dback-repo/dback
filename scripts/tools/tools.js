@@ -5,9 +5,9 @@ module.exports = class Tools {
     }
 
   	//env must be stored at ../env.js
-	startCmdDetached(cmd) {
+	startCmdDetached(cmd, args) {
 		var out = require('fs').openSync('.', 'a')
-		var child = require('child_process').spawn('cmd', ['/c start '+cmd], { detached: true, stdio: [ 'ignore', out, out ] })
+		var child = require('child_process').spawn(cmd, args, { detached: true, stdio: [ 'ignore', out, out ] })
 		child.unref()
 	}
 };
