@@ -5,3 +5,4 @@
 *.tar
 /tests/test1-save-two-containers/tmp
 /tests/test1-save-two-containers/tmp-old
+/go-app/src/github.com
