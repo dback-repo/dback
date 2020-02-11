@@ -6,7 +6,17 @@ module.exports = class Env {
 			sep=';'
 		}
 
-    	process.env['REPO'] = 		require('path').resolve(__dirname+'/..')
-        process.env['PATH'] += 		sep+process.env['REPO']+'/node_modules/liteide/bin'
+    	process.env['REPO'] = 					require('path').resolve(__dirname+'/..')
+
+        process.env['GOPATH'] = 				process.env['REPO']+'/go-app'
+        process.env['GOROOT'] = 				process.env['REPO']+'/node_modules/go-win'
+
+        process.env['PATH'] += 					sep+process.env['GOPATH']+'/bin'
+        process.env['PATH'] += 					sep+process.env['GOROOT']+'/bin'
+        process.env['PATH'] += 					sep+process.env['REPO']+'/node_modules/.bin'
+        process.env['PATH'] += 					sep+process.env['REPO']+'/node_modules/upx-win'
+        process.env['PATH'] += 					sep+process.env['REPO']+'/node_modules/liteide/bin'
+
+        process.env['DOCKER_API_VERSION'] = 	'1.37'
     }
 };
