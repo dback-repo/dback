@@ -1,6 +1,6 @@
 {
-  "name": "dback-develop",
-  "version": "1.0.0",
+  "name": "dback-dev",
+  "version": "0.0.1",
   "description": "dev dependencies for dback",
   "main": "index.js",
   "scripts": {

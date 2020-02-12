@@ -14,11 +14,15 @@ module.exports = class Env {
 
         process.env['GOPATH'] = 				process.env['REPO']+'/go-app'
         process.env['GOROOT'] = 				process.env['REPO']+'/node_modules/go-win'
+		if (process.platform === "linux"){
+        	process.env['GOROOT'] = 			process.env['REPO']+'/node_modules/go-linux'
+		}
 
         process.env['PATH'] += 					sep+process.env['GOPATH']+'/bin'
         process.env['PATH'] += 					sep+process.env['GOROOT']+'/bin'
         process.env['PATH'] += 					sep+process.env['REPO']+'/node_modules/.bin'
         process.env['PATH'] += 					sep+process.env['REPO']+'/node_modules/upx-win'
+        process.env['PATH'] += 					sep+process.env['REPO']+'/node_modules/upx-linux'        
         process.env['PATH'] += 					sep+process.env['REPO']+'/node_modules/liteide-win/bin'
 
         process.env['DOCKER_API_VERSION'] = 	'1.37'
