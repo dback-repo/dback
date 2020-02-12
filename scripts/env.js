@@ -19,7 +19,7 @@ module.exports = class Env {
         process.env['PATH'] += 					sep+process.env['GOROOT']+'/bin'
         process.env['PATH'] += 					sep+process.env['REPO']+'/node_modules/.bin'
         process.env['PATH'] += 					sep+process.env['REPO']+'/node_modules/upx-win'
-        process.env['PATH'] += 					sep+process.env['REPO']+'/node_modules/liteide/bin'
+        process.env['PATH'] += 					sep+process.env['REPO']+'/node_modules/liteide-win/bin'
 
         process.env['DOCKER_API_VERSION'] = 	'1.37'
         process.env['ENVISSET'] = 				'TRUE'

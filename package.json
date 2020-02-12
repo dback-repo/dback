@@ -15,10 +15,14 @@
   },
   "author": "alexander.eliseev",
   "license": "ISC",
+  "optionalDependencies": {
+    "go-win": "1.13.8",
+    "go-linux": "1.13.8",
+    "liteide-win": "0.36.3",
+    "upx-win": "0.3.96",
+    "upx-linux": "0.3.96"
+  },
   "dependencies": {
-    "concurrently": "^4.1.1",
-    "go-win": "1.0.0",
-    "liteide": "1.0.0",
-    "upx-win": "^1.0.0"
+    "concurrently": "4.1.2"
   }
 }
