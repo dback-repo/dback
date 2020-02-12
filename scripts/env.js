@@ -1,6 +1,10 @@
 module.exports = class Env {
 	constructor()
     {
+		if (!process.env.ENVISSET) { 
+			return
+		}
+
     	var sep=':'
 		if (process.platform === "win32"){
 			sep=';'
@@ -18,5 +22,6 @@ module.exports = class Env {
         process.env['PATH'] += 					sep+process.env['REPO']+'/node_modules/liteide/bin'
 
         process.env['DOCKER_API_VERSION'] = 	'1.37'
+        process.env['ENVISSET'] = 				'TRUE'
     }
 };

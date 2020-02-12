@@ -4,7 +4,8 @@
   "description": "dev dependencies for dback",
   "main": "index.js",
   "scripts": {
-    "start-ide": "node scripts/start-ide.js"
+    "start-ide": "node scripts/start-ide.js",
+    "build": "node scripts/build.js"
   },
   "repository": {
     "type": "git",
