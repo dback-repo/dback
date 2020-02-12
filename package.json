@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start-ide": "node scripts/start-ide.js",
-    "build": "node scripts/build.js"
+    "build": "node scripts/build.js",
+    "test": "node scripts/test.js",
+    "iter": "npm run build && npm run test"
   },
   "repository": {
     "type": "git",
