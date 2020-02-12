@@ -1,7 +1,7 @@
 module.exports = class Env {
 	constructor()
     {
-		if (!process.env.ENVISSET) { 
+		if (! "ENVISSET" in process.env) {
 			return
 		}
 
