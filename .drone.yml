@@ -4,6 +4,7 @@ name: build-dback
 steps:
 - name: build-dback
   image: docker:19.03
+  privileged: true
   commands:
   - apk update
   - apk add npm
