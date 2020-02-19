@@ -21,6 +21,7 @@ const moveFileToDockerVolume = function(file, volume){
 //move an old tmp folder to tmp-old
 //because of deleting is extrimely slow for multiple files
 const clearTmp = function(){
+	createFolder('tmp')
 	createFolder('tmp-old')
 	fs.renameSync('tmp', 'tmp-old/'+Math.floor(new Date() / 1000))
 	createFolder('tmp')
