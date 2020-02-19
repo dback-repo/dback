@@ -4,11 +4,16 @@ name: build-dback
 steps:
 - name: build-dback
   image: docker:19.03
+  volumes:
+  - name: dockersocket
+    path: var/run/docker.sock
   commands:
   - apk update
   - apk add npm
   - whoami
   - npm i
   - npm run iter
-  volumes:
-  - /var/run/docker.sock:/var/run/docker.sock
+volumes:
+- name: dockersocket
+  host:
+    path: /var/lib/cache
