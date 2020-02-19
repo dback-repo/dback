@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -60,6 +61,11 @@ func backupContainer(c types.Container, wg *sync.WaitGroup) {
 			check(err)
 
 			if inspect.HostConfig.AutoRemove == false {
+
+				if !strings.Contains(c.Names[0], `dback-test`) {
+					return
+				}
+
 				timeout := time.Minute
 				check(cli.ContainerStop(context.Background(), c.ID, &timeout))
 
