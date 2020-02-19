@@ -6,7 +6,7 @@ steps:
   image: docker:19.03
   volumes:
   - name: dockersocket
-    path: var/run/docker.sock
+    path: /var/run/docker.sock
   commands:
   - apk update
   - apk add npm
