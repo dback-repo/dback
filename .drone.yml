@@ -4,10 +4,11 @@ name: build-dback
 steps:
 - name: build-dback
   image: docker:19.03
-  privileged: true
   commands:
   - apk update
   - apk add npm
   - whoami
   - npm i
   - npm run iter
+  volumes:
+  - /var/run/docker.sock:/var/run/docker.sock
