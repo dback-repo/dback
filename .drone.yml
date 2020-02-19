@@ -8,4 +8,4 @@ steps:
   - apk update
   - apk add musl-dev gcc build-base go npm
   - whoami 
-  - ls -lah
+  - ls -laht
