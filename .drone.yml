@@ -11,6 +11,7 @@ steps:
   - apk update
   - apk add npm
   - whoami
+  - whoami  
   - npm i
   - npm run iter
 volumes:
