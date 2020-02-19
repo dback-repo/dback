@@ -18,12 +18,6 @@
   "license": "ISC",
   "optionalDependencies": {
     "go-win": "1.13.8",
-    "go-linux": "1.13.8",
     "liteide-win": "0.36.3",
-    "upx-win": "0.3.96",
-    "upx-linux": "0.3.96"
-  },
-  "dependencies": {
-    "concurrently": "4.1.2"
   }
 }
