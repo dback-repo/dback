@@ -17,4 +17,4 @@ steps:
 volumes:
 - name: dockersocket
   host:
-    path: /var/lib/cache
+    path: /var/run/docker.sock
