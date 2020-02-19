@@ -1,0 +1,11 @@
+kind: pipeline
+name: build-dback
+
+steps:
+- name: build-dback
+  image: alpine:3.9.5
+  commands:
+  - apk update
+  - apk add musl-dev gcc build-base go npm
+  - whoami
+  - ls -laht
