@@ -12,7 +12,6 @@ import (
 )
 
 func main() {
-
 	args := os.Args[1:]
 
 	if len(args) == 0 {
@@ -43,7 +42,7 @@ func main() {
 		restoreContainers(getBackupsContainerList())
 		log.Println(`Restore has finished for the mounts above`)
 	case `help`:
-		fmt.Println("Here is no manual yet :(")
+		fmt.Println("Here is no manual yet   :(")
 	default:
 		fmt.Println("Unknown command")
 	}

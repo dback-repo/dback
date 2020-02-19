@@ -1,5 +1,5 @@
-const mv = require('fs').renameSync;
-const cmd = require('child_process').execSync;
+const t = new(require('./tools/tools.js'))
+
 const r = process.env.REPO
 
-cmd('node test.js', {cwd: r+'/tests/test1-save-two-containers',stdio: 'inherit'});
+t.cmd('node test.js', {cwd: r+'/tests/test1-save-two-containers',stdio: 'inherit'});

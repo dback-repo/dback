@@ -43,6 +43,6 @@ cmd('docker run -d --name dback-test-1.3 nginx:1.17.8-alpine')
 cmd('docker run --rm -d --name dback-test-1.4 -v dback-test-1.4-volume:/mount-vol nginx:1.17.8-alpine')
 
 cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v %CD%\\tmp:/backup dback backup',{stdio: 'inherit'})
-cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v %CD%\\tmp:/backup dback restore',{stdio: 'inherit'})
+// cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v %CD%\\tmp:/backup dback restore',{stdio: 'inherit'})
 
 //docker run --rm -v //var/run/docker.sock:/var/run/docker.sock -v %REPO%\tests\test1-save-two-containers\tmp:/backup dback restore

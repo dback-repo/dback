@@ -1,0 +1,4 @@
+/.git
+/go-app/pkg
+/tests
+/node_modules
