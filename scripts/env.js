@@ -31,7 +31,7 @@ module.exports = class Env {
         process.env['ENVISSET'] = 				'TRUE'
 
         const fs = require('fs')
-        if (process.env['CI'] != true) {                            //load secrets from /secrets folder, if we are not in CI
+        if (!process.env['CI']) {                            //load secrets from /secrets folder, if we are not in CI
             if (!fs.existsSync(process.env['REPO']+'/secrets')){    //create secrets file from draft, if not exist
                 fs.mkdirSync(process.env['REPO']+'/secrets');
                 if (!fs.existsSync(process.env['REPO']+'/secrets/env.js')){
@@ -39,8 +39,7 @@ module.exports = class Env {
                     mv(process.env['REPO']+'/scripts/tools/secret-env-draft.js',process.env['REPO']+'/secrets/env.js')
                 }
             }
+            new(require(process.env['REPO']+'/secrets/env.js'));
         }
-
-        new(require(process.env['REPO']+'/secrets/env.js'));
     }
 };

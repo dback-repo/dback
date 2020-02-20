@@ -6,7 +6,7 @@ if(!process.env.DRONE_BUILD_NUMBER) {
 }
 
 t.cmd('docker login -u '+process.env.DBACK_DOCKER_LOGIN+' -p '+process.env.DBACK_DOCKER_PASSWORD, {cwd: r})
-t.cmd('docker tag dback:latest '+process.env.DBACK_DOCKER_LOGIN+'/'+process.env.DBACK_DOCKER_REPO+':latest', {cwd: r})
-t.cmd('docker tag dback:latest '+process.env.DBACK_DOCKER_LOGIN+'/'+process.env.DBACK_DOCKER_REPO+':'+process.env.DBACK_VER+'.'+process.env.DRONE_BUILD_NUMBER, {cwd: r})
-t.cmd('docker push '+process.env.DBACK_DOCKER_LOGIN+'/'+process.env.DBACK_DOCKER_REPO+':latest', {cwd: r})
-t.cmd('docker push '+process.env.DBACK_DOCKER_LOGIN+'/'+process.env.DBACK_DOCKER_REPO+':'+process.env.DBACK_VER+'.'+process.env.DRONE_BUILD_NUMBER, {cwd: r})
+t.cmd('docker tag dback:latest '+process.env.DBACK_DOCKER_LOGIN+'/dback:latest', {cwd: r})
+t.cmd('docker tag dback:latest '+process.env.DBACK_DOCKER_LOGIN+'/dback:'+process.env.DBACK_VER+'.'+process.env.DRONE_BUILD_NUMBER, {cwd: r})
+t.cmd('docker push '+process.env.DBACK_DOCKER_LOGIN+'/dback:latest', {cwd: r})
+t.cmd('docker push '+process.env.DBACK_DOCKER_LOGIN+'/dback:'+process.env.DBACK_VER+'.'+process.env.DRONE_BUILD_NUMBER, {cwd: r})
