@@ -5,8 +5,10 @@ module.exports = class Env {
 			return
 		}
 
-    	var sep=':'
-		if (process.platform === "win32"){
+        process.env['DBACK_VER'] =              '0.0'
+
+    	var sep=':' 
+		if (process.platform === "win32"){ // override separator in PATH variable for windows
 			sep=';'
 		}
 
@@ -27,5 +29,18 @@ module.exports = class Env {
 
         process.env['DOCKER_API_VERSION'] = 	'1.37'
         process.env['ENVISSET'] = 				'TRUE'
+
+        const fs = require('fs')
+        if (process.env['CI'] != true) {                            //load secrets from /secrets folder, if we are not in CI
+            if (!fs.existsSync(process.env['REPO']+'/secrets')){    //create secrets file from draft, if not exist
+                fs.mkdirSync(process.env['REPO']+'/secrets');
+                if (!fs.existsSync(process.env['REPO']+'/secrets/env.js')){
+                    const mv = require('fs').copyFileSync
+                    mv(process.env['REPO']+'/scripts/tools/secret-env-draft.js',process.env['REPO']+'/secrets/env.js')
+                }
+            }
+        }
+
+        new(require(process.env['REPO']+'/secrets/env.js'));
     }
 };

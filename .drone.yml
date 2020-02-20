@@ -18,6 +18,7 @@ steps:
   - whoami  
   - npm i
   - npm run iter
+  secrets: [ DBACK_DOCKER_LOGIN, DBACK_DOCKER_PASSWORD, DBACK_DOCKER_REPO ]
 volumes:
 - name: dockersocket
   host:
