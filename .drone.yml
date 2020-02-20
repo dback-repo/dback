@@ -14,10 +14,8 @@ steps:
   commands:
   - apk update
   - apk add npm
-  - echo check branch will not built in CI
-  - whoami  
   - npm i
-  - npm run iter
+  - npm run iterprod
   secrets: [ DBACK_DOCKER_LOGIN, DBACK_DOCKER_PASSWORD, DBACK_DOCKER_REPO ]
 volumes:
 - name: dockersocket
