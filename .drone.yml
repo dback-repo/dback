@@ -1,22 +1,22 @@
 kind: pipeline
-name: build-dback
-
-trigger:
-  branch: master
-  event: push
+type: docker
+name: deploy-dback
 
 steps:
-- name: build-dback
-  image: docker:19.03
+- name: iterprod
+  image: docker:19.03  
+  environment:
+    DBACK_DOCKER_LOGIN:
+      from_secret: DBACK_DOCKER_LOGIN
+    DBACK_DOCKER_PASSWORD:
+      from_secret: DBACK_DOCKER_PASSWORD
   volumes:
   - name: dockersocket
     path: /var/run/docker.sock
   commands:
-  - apk update
-  - apk add npm
-  - npm i
-  - "DBACK_DOCKER_LOGIN=$DBACK_DOCKER_LOGIN && DBACK_DOCKER_PASSWORD=$DBACK_DOCKER_PASSWORD && DBACK_DOCKER_REPO=$DBACK_DOCKER_REPO && npm run iterprod"
-  secrets: [ DBACK_DOCKER_LOGIN, DBACK_DOCKER_PASSWORD, DBACK_DOCKER_REPO ]
+    - apk update
+    - apk add npm
+    - npm run iterprod
 volumes:
 - name: dockersocket
   host:
