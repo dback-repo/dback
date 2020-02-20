@@ -1,7 +1,10 @@
 kind: pipeline
 type: docker
 name: deploy-dback
-
+trigger:
+  branch: master
+  event: push
+  
 steps:
 - name: iterprod
   image: docker:19.03  
