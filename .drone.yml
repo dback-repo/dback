@@ -1,6 +1,10 @@
 kind: pipeline
 name: build-dback
 
+trigger:
+  branch: master
+  event: push
+
 steps:
 - name: build-dback
   image: docker:19.03
