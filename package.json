@@ -7,8 +7,9 @@
     "start-ide": "node scripts/start-ide.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
+    "deploy": "node scripts/deploy.js",
     "iter": "npm run build -- dev && npm run test",
-    "iterprod": "npm run build -- prod && npm run test"
+    "iterprod": "npm run build -- dev && npm run test && npm run deploy"
   },
   "repository": {
     "type": "git",
