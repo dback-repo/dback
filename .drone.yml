@@ -14,7 +14,7 @@ steps:
   commands:
   - apk update
   - apk add npm
-  - whoami
+  - echo check branch will not built in CI
   - whoami  
   - npm i
   - npm run iter
