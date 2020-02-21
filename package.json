@@ -1,23 +1,14 @@
 {
-  "name": "dback-dev",
-  "version": "0.0.1",
-  "description": "dev dependencies for dback",
   "scripts": {
-    "start-ide": "node scripts/start-ide.js",
-    "build": "node scripts/build.js",
-    "test": "node scripts/test.js",
-    "deploy": "node scripts/deploy.js",
-    "iter": "npm run build -- dev && npm run test",
-    "iterprod": "npm run build -- prod && npm run test && npm run deploy"
+    "start-ide":  "node scripts/start-ide.js",
+    "build":      "node scripts/build.js",
+    "test":       "node scripts/test.js",
+    "deploy":     "node scripts/deploy.js",
+    "iter":       "npm run build -- dev && npm run test",
+    "iterprod":   "npm run build -- prod && npm run test && npm run deploy"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/dback-repo/dback.git"
-  },
-  "author": "alexander.eliseev",
-  "license": "ISC",
   "optionalDependencies": {
-    "go-win": "1.13.8",
-    "liteide-win": "0.36.3"
+    "go-win":       "1.13.8",
+    "liteide-win":  "0.36.3"
   }
 }
