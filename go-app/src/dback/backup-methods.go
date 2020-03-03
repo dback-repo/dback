@@ -5,7 +5,9 @@ import (
 	"io"
 	"log"
 	"os"
-	"strings"
+	"regexp"
+
+	//	"strings"
 	"sync"
 	"time"
 
@@ -45,11 +47,14 @@ func backupMount(c types.Container, m types.MountPoint, wg *sync.WaitGroup) {
 	// }
 
 	// check(Untar(reader, `/backup/`+c.Names[0]+destParent))
-	log.Println(c.Names[0] + m.Destination)
+	log.Println(`make backup: ` + c.Names[0] + m.Destination)
 }
 
-func backupContainer(c types.Container, wg *sync.WaitGroup) {
+func backupContainer(c types.Container, wg *sync.WaitGroup, excludePattern string) {
 	defer wg.Done()
+
+	r, err := regexp.Compile(excludePattern)
+	check(err)
 
 	cli, err := client.NewEnvClient()
 	check(err)
@@ -61,24 +66,35 @@ func backupContainer(c types.Container, wg *sync.WaitGroup) {
 			check(err)
 
 			if inspect.HostConfig.AutoRemove == false {
-
-				if !strings.Contains(c.Names[0], `dback-test`) {
-					return
+				mounts := []types.MountPoint{}
+				for _, curMount := range c.Mounts {
+					if excludePattern == `` {
+						mounts = append(mounts, curMount)
+					} else {
+						if !r.MatchString(c.Names[0] + curMount.Destination) {
+							mounts = append(mounts, curMount)
+						} else {
+							log.Println(`exclude: ` + c.Names[0] + curMount.Destination)
+						}
+					}
 				}
 
 				timeout := time.Minute
+
+				if len(mounts) == 0 {
+					return
+				}
 				check(cli.ContainerStop(context.Background(), c.ID, &timeout))
 
 				var wgMount sync.WaitGroup
-				wgMount.Add(len(c.Mounts))
-				for _, curMount := range c.Mounts {
+				wgMount.Add(len(mounts))
+				for _, curMount := range mounts {
 					go backupMount(c, curMount, &wgMount)
 				}
 				wgMount.Wait()
 
 				check(cli.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}))
 			}
-
 		}
 	}
 }

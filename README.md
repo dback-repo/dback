@@ -9,7 +9,7 @@ There is an instance with some important dockerized apps like Jenkins, GitLab, V
 # Example
 ```sh
 mkdir /tmp/backup
-docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v /tmp/backup:/backup dback:dback
+docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v /tmp/backup:/backup dback:dback backup
 ```
 Volume backups named as: `<ContainerName>/<PathInContainer>/snapshot-<timestamp>.tar`
 
