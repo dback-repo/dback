@@ -56,11 +56,11 @@ cmd('docker run -d --name dback-test-1.2 -v '+cd+'/data/mount-dir:/mount-dir -v 
 cmd('docker run -d --name dback-test-1.3 nginx:1.17.8-alpine')
 cmd('docker run --rm -d --name dback-test-1.4 -v dback-test-1.4-volume:/mount-vol nginx:1.17.8-alpine')
 
-var out = cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/backup dback backup').toString()
+var out = cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/backup dback backup --exclude-mount ^/drone.*$').toString()
 checkSub(out,'Backup started')
-checkSub(out,'/dback-test-1.2/mount-vol')
-checkSub(out,'/dback-test-1.1/mount-dir')
-checkSub(out,'/dback-test-1.2/mount-dir')
+checkSub(out,'make backup: /dback-test-1.2/mount-vol')
+checkSub(out,'make backup: /dback-test-1.1/mount-dir')
+checkSub(out,'make backup: /dback-test-1.2/mount-dir')
 checkSub(out,'Backup has finished for the mounts above')
 checkNoSub(out,'dback-test-1.4')
 

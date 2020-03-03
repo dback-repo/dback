@@ -20,6 +20,24 @@ func main() {
 
 	switch args[0] {
 	case `backup`:
+		excludePattern := ``
+		if len(args) > 1 {
+			switch args[1] {
+			case `--help`:
+				fmt.Println(`backup help`)
+				return
+			case `--exclude-mount`:
+				if len(args) < 3 {
+					fmt.Println(`Exclude parameter is defined, but pattern is not provided`)
+					return
+				}
+				excludePattern = args[2]
+			default:
+				fmt.Println("Unknown parameter")
+				return
+			}
+		}
+
 		log.Println(`Backup started`)
 		cli, err := client.NewEnvClient()
 		check(err)
@@ -32,7 +50,7 @@ func main() {
 		wg.Add(len(containers))
 
 		for _, curContainer := range containers {
-			go backupContainer(curContainer, &wg)
+			go backupContainer(curContainer, &wg, excludePattern)
 		}
 
 		wg.Wait()
