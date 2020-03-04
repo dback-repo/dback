@@ -24,7 +24,21 @@ func main() {
 		if len(args) > 1 {
 			switch args[1] {
 			case `--help`:
-				fmt.Println(`backup help`)
+				fmt.Println(`Usage:  dback backup [OPTIONS]
+
+Make snapshot of mounts matched all the points:
+default points:
+- HostConfig.AutoRemove:      false
+- HostConfig.RestartPolicy:   always
+- Status.State:               running
+- Status.Running:             true
+
+Options:
+  --exclude-mount string            Exclude volume pattern
+    mounts are named as: <ContainerName>/<PathInContainer>
+    For example, mount in "mysql" container: mysql/var/mysql/data
+    Pattern is regular expression. For example, "^/(drone.*|dback-test-1.5)$"
+    ignore all mounts starts with "/drone", or whole "/dback-test-1.5"`)
 				return
 			case `--exclude-mount`:
 				if len(args) < 3 {
@@ -60,8 +74,18 @@ func main() {
 		restoreContainers(getBackupsContainerList())
 		log.Println(`Restore has finished for the mounts above`)
 	case `help`:
-		fmt.Println("Here is no manual yet.....   :(")
+		fmt.Println(`Usage:  dback [OPTIONS] COMMAND
+
+A tool for docker mounts bulk backup and restore
+
+Options:
+  --folder string      Not implemented yet. Location of client config files (default "/backup")
+Commands:
+  backup               Make snapshot of mounts
+  restore              Restore snapshots to exist mounts
+
+Run 'dback COMMAND --help' for more information on a command`)
 	default:
-		fmt.Println("Unknown command")
+		fmt.Println(`Unknown command. Type "dback help" for see manual`)
 	}
 }
