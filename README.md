@@ -14,8 +14,7 @@ docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v /tmp/dback-s
 Mount backups named as: `dback-snapshots/[ContainerName]/[Path/In/Container]/tar.tar`
 
 ```sh
-tree /tmp/dback-snapshots
-/tmp/dback-snapshots/
+.
 └── gitlab
     ├── etc
     │   └── gitlab
