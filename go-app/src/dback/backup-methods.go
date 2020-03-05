@@ -55,34 +55,40 @@ func backupContainer(c types.Container, wg *sync.WaitGroup, excludePattern strin
 			check(err)
 
 			if inspect.HostConfig.AutoRemove == false {
-				mounts := []types.MountPoint{}
-				for _, curMount := range c.Mounts {
-					if excludePattern == `` {
-						mounts = append(mounts, curMount)
-					} else {
-						if !r.MatchString(c.Names[0] + curMount.Destination) {
+				if !inspect.HostConfig.RestartPolicy.IsNone() {
+					mounts := []types.MountPoint{}
+					for _, curMount := range c.Mounts {
+						if excludePattern == `` {
 							mounts = append(mounts, curMount)
 						} else {
-							log.Println(`exclude: ` + c.Names[0] + curMount.Destination)
+							if !r.MatchString(c.Names[0] + curMount.Destination) {
+								mounts = append(mounts, curMount)
+							} else {
+								log.Println(`exclude: ` + c.Names[0] + curMount.Destination + `      Reason: --exclude-mount parameter`)
+							}
 						}
 					}
+
+					timeout := time.Minute
+
+					if len(mounts) == 0 {
+						return
+					}
+					check(cli.ContainerStop(context.Background(), c.ID, &timeout))
+
+					var wgMount sync.WaitGroup
+					wgMount.Add(len(mounts))
+					for _, curMount := range mounts {
+						go backupMount(c, curMount, &wgMount)
+					}
+					wgMount.Wait()
+
+					check(cli.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}))
+				} else {
+					log.Println(`exclude: ` + c.Names[0] + `      Reason: container restart policy==none`)
 				}
-
-				timeout := time.Minute
-
-				if len(mounts) == 0 {
-					return
-				}
-				check(cli.ContainerStop(context.Background(), c.ID, &timeout))
-
-				var wgMount sync.WaitGroup
-				wgMount.Add(len(mounts))
-				for _, curMount := range mounts {
-					go backupMount(c, curMount, &wgMount)
-				}
-				wgMount.Wait()
-
-				check(cli.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}))
+			} else {
+				log.Println(`exclude: ` + c.Names[0] + `      Reason: temporary container (--rm)`)
 			}
 		}
 	}

@@ -11,7 +11,7 @@ There is an instance with some important dockerized apps like Jenkins, GitLab, V
 ```sh
 docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v /tmp/dback-snapshots:/dback-snapshots dback/dback backup
 ```
-Volume backups named as: `dback-snapshots/[ContainerName]/[Path/In/Container]/tar.tar`
+Mount backups named as: `dback-snapshots/[ContainerName]/[Path/In/Container]/tar.tar`
 
 ```sh
 tree /tmp/dback-snapshots
@@ -29,12 +29,17 @@ tree /tmp/dback-snapshots
                 └── tar.tar
 ```
 
-##### Default pattern:
-All mounts of each container matched all the options:
+##### Default backup pattern:
+Backup all mounts of each container matched all the options:
 - HostConfig.AutoRemove: false
-- HostConfig.RestartPolicy: always
+- HostConfig.RestartPolicy: != none
 - Status.State: running
-- Status.Running: true
+
+##### Exclude mounts:
+You able to ignore some mounts by regexp.
+`dback backup --exclude-mount "^/(drone.*|dback-test-1.5.*)$"`
+this call will ignore all mounts started from "/drone" or "/dback-test-1.5"
+
 
 # Alternatives:
 Perhaps these tools will work for you:<br>
