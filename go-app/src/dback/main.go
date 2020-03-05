@@ -35,10 +35,10 @@ default points:
 
 Options:
   --exclude-mount string            Exclude volume pattern
-    mounts are named as: <ContainerName>/<PathInContainer>
+    mounts are named as: [ContainerName]/[PathInContainer]
     For example, mount in "mysql" container: mysql/var/mysql/data
-    Pattern is regular expression. For example, "^/(drone.*|dback-test-1.5)$"
-    ignore all mounts starts with "/drone", or whole "/dback-test-1.5"`)
+    Pattern is regular expression. For example, "^/(drone.*|dback-test-1.5.*)$"
+    ignore all mounts starts with "/drone", or "/dback-test-1.5"`)
 				return
 			case `--exclude-mount`:
 				if len(args) < 3 {
@@ -79,7 +79,7 @@ Options:
 A tool for docker mounts bulk backup and restore
 
 Options:
-  --folder string      Not implemented yet. Location of client config files (default "/backup")
+  --folder string      Not implemented yet. Location of client config files (default "dback-snapshots")
 Commands:
   backup               Make snapshot of mounts
   restore              Restore snapshots to exist mounts

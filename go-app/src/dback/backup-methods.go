@@ -6,8 +6,6 @@ import (
 	"log"
 	"os"
 	"regexp"
-
-	//	"strings"
 	"sync"
 	"time"
 
@@ -27,26 +25,17 @@ func backupMount(c types.Container, m types.MountPoint, wg *sync.WaitGroup) {
 	check(err)
 	defer cli.Close()
 
-	check(os.MkdirAll(`/backup/`+c.Names[0]+m.Destination, 0664))
+	check(os.MkdirAll(`dback-snapshots/`+c.Names[0]+m.Destination, 0664))
 
 	reader, _, err := cli.CopyFromContainer(context.Background(), c.ID, m.Destination)
 	check(err)
 
-	outFile, err := os.Create(`/backup/` + c.Names[0] + m.Destination + `/tar.tar`)
+	outFile, err := os.Create(`dback-snapshots/` + c.Names[0] + m.Destination + `/tar.tar`)
 	check(err)
 	defer outFile.Close()
 	_, err = io.Copy(outFile, reader)
+	check(err)
 
-	// reader, _, err := cli.CopyFromContainer(context.Background(), c.ID, m.Destination)
-	// check(err)
-
-	// lastSlashIdx := strings.LastIndex(m.Destination, `/`)
-	// destParent := m.Destination[:lastSlashIdx] // /var/www/lynx -> /var/www
-	// if destParent == `` {
-	// 	destParent = `/`
-	// }
-
-	// check(Untar(reader, `/backup/`+c.Names[0]+destParent))
 	log.Println(`make backup: ` + c.Names[0] + m.Destination)
 }
 

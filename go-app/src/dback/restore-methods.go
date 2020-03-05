@@ -14,10 +14,10 @@ import (
 	"github.com/docker/docker/client"
 )
 
-//list of saved containers == list of folders in /backup
+//list of saved containers == list of folders in /dback-snapshots
 func getBackupsContainerList() []string {
 	var res []string
-	files, err := ioutil.ReadDir(`/backup`)
+	files, err := ioutil.ReadDir(`/dback-snapshots`)
 	check(err)
 	for _, curFile := range files {
 		if curFile.IsDir() {
@@ -44,7 +44,7 @@ func restoreMount(c types.Container, m types.MountPoint, wg *sync.WaitGroup) {
 	check(err)
 	defer cli.Close()
 
-	tar, err := os.Open(`/backup/` + c.Names[0] + m.Destination + `/tar.tar`)
+	tar, err := os.Open(`dback-snapshots/` + c.Names[0] + m.Destination + `/tar.tar`)
 	check(err)
 
 	lastSlashIdx := strings.LastIndex(m.Destination, `/`)
