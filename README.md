@@ -1,5 +1,6 @@
-Dback is observe and backup all the mounts by pattern.<br>
-By default, dback is also stop/start containers during backup, for prevent data corruption.
+Dback is observe and backup docker mounts by pattern.<br>
+By default, it also stop/start containers during backup, for prevent data corruption.
+
 # The main use case
 There is an instance with some important dockerized apps like Jenkins, GitLab, Vault, etc...
 - Somebody wants to add an extra dockerized application, and he won't setup backup for the app
@@ -8,10 +9,25 @@ There is an instance with some important dockerized apps like Jenkins, GitLab, V
 
 # Example
 ```sh
-mkdir /tmp/backup
-docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v /tmp/backup:/backup dback/dback backup
+docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v /tmp/dback-snapshots:/dback-snapshots dback/dback backup
 ```
-Volume backups named as: `<ContainerName>/<PathInContainer>/snapshot-<timestamp>.tar`
+Volume backups named as: `dback-snapshots/[ContainerName]/[Path/In/Container]/tar.tar`
+
+```sh
+tree /tmp/dback-snapshots
+/tmp/dback-snapshots/
+└── gitlab
+    ├── etc
+    │   └── gitlab
+    │       └── tar.tar
+    └── var
+        ├── log
+        │   └── gitlab
+        │       └── tar.tar
+        └── opt
+            └── gitlab
+                └── tar.tar
+```
 
 ##### Default pattern:
 All mounts of each container matched all the options:
