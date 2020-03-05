@@ -35,7 +35,7 @@ Backup all mounts of each container matched all the options:
 - Status.State: running
 
 ##### Exclude mounts:
-You able to ignore some mounts by regexp.
+You able to ignore some mounts by regexp.<br>
 `dback backup --exclude-mount "^/(drone.*|dback-test-1.5.*)$"`
 this call will ignore all mounts started from "/drone" or "/dback-test-1.5"
 
