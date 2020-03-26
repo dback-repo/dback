@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,7 +20,29 @@ func check(err error) {
 	}
 }
 
-func backupMount(c types.Container, m types.MountPoint, wg *sync.WaitGroup) {
+func unpackTarToMyself(c types.Container, myContainer types.Container, m types.MountPoint) {
+	//check(os.MkdirAll(`/tmp`, 664))
+
+	cli, err := client.NewEnvClient()
+	check(err)
+	defer cli.Close()
+
+	tar, err := os.Open(`dback-snapshots/` + c.Names[0] + m.Destination + `/tar.tar`)
+	check(err)
+	defer tar.Close()
+
+	lastSlashIdx := strings.LastIndex(m.Destination, `/`)
+	destParent := m.Destination[:lastSlashIdx] //      "/var/www/lynx" -> "/var/www"        "/opt" -> "/"
+	if destParent == `` {
+		destParent = `/`
+	}
+
+	destParent = `/dback-snapshots` + c.Names[0] + m.Destination
+
+	check(cli.CopyToContainer(context.Background(), myContainer.ID, destParent, tar, types.CopyToContainerOptions{true, false}))
+}
+
+func backupMount(cli *client.Client, c types.Container, m types.MountPoint, wg *sync.WaitGroup) {
 	defer wg.Done()
 	cli, err := client.NewEnvClient()
 	check(err)
@@ -37,6 +60,11 @@ func backupMount(c types.Container, m types.MountPoint, wg *sync.WaitGroup) {
 	check(err)
 
 	log.Println(`make backup: ` + c.Names[0] + m.Destination)
+
+	myselfContainerID, err := os.Hostname()
+	check(err)
+
+	unpackTarToMyself(c, *getContainerByNameOrId(cli, myselfContainerID), m)
 }
 
 func backupContainer(c types.Container, wg *sync.WaitGroup, excludePattern string) {
@@ -79,7 +107,7 @@ func backupContainer(c types.Container, wg *sync.WaitGroup, excludePattern strin
 					var wgMount sync.WaitGroup
 					wgMount.Add(len(mounts))
 					for _, curMount := range mounts {
-						go backupMount(c, curMount, &wgMount)
+						go backupMount(cli, c, curMount, &wgMount)
 					}
 					wgMount.Wait()
 

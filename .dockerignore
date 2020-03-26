@@ -2,3 +2,6 @@
 /go-app/pkg
 /tests
 /node_modules
+/go-app/src/dback/dback-snapshots/*
+*.tar
+*.exe

@@ -58,7 +58,7 @@ func restoreMount(c types.Container, m types.MountPoint, wg *sync.WaitGroup) {
 }
 
 //return nil if not found
-func getContainerByName(cli *client.Client, targetName string) *types.Container {
+func getContainerByNameOrId(cli *client.Client, targetName string) *types.Container {
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
 	check(err)
 	for _, curContainer := range containers {
@@ -66,6 +66,10 @@ func getContainerByName(cli *client.Client, targetName string) *types.Container 
 			if curName == `/`+targetName {
 				return &curContainer
 			}
+		}
+		//log.Println(targetName, ` `, curContainer.ID[:len(targetName)])
+		if curContainer.ID[:len(targetName)] == targetName {
+			return &curContainer
 		}
 	}
 	return nil
@@ -78,7 +82,7 @@ func restoreContainer(containerName string, wg *sync.WaitGroup) {
 	check(err)
 	defer cli.Close()
 
-	c := getContainerByName(cli, containerName)
+	c := getContainerByNameOrId(cli, containerName)
 	if c == nil {
 		log.Println(`Container "` + containerName + `" not found`)
 		return

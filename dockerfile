@@ -1,4 +1,4 @@
-FROM golang:1.13.7-alpine3.11 as builder
+FROM golang:1.14.1-alpine3.11 as builder
 RUN apk update && apk add build-base=0.5-r1
 COPY go-app/src /go/src
 ENV CGO_ENABLED=0

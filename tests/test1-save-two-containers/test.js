@@ -62,7 +62,14 @@ cmd('docker run --rm -d --name dback-test-1.4 -v dback-test-1.4-volume:/mount-vo
 cmd('docker run --restart always -d --name dback-test-1.5 -v '+cd+'/data/mount-dir:/mount-dir nginx:1.17.8-alpine') 					//ignored by --exclude-mount pattern
 cmd('docker run -d --name dback-test-1.6 -v '+cd+'/data/mount-dir:/mount-dir -v dback-test-1.2-volume:/mount-vol nginx:1.17.8-alpine')  //ignored due restart-policy==none
 
-var out = cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-snapshots dback backup --exclude-mount "^/(drone.*|dback-test-1.5.*)$"').toString()
+
+var out = ''
+try {out = cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-snapshots dback backup --exclude-mount "^/(drone.*|dback-test-1.5.*)$"').toString()}catch(ex){
+	console.log('---')
+	console.log(ex.stdout.toString())
+	console.log('---')
+	throw('failed')
+}
 checkSub(out,'Backup started')
 checkSub(out,'exclude: /dback-test-1.4      Reason: temporary container (--rm)')
 checkSub(out,'exclude: /dback-test-1.5/mount-dir      Reason: --exclude-mount parameter')
@@ -72,5 +79,7 @@ checkSub(out,'make backup: /dback-test-1.1/mount-dir')
 checkSub(out,'make backup: /dback-test-1.2/mount-dir')
 checkSub(out,'exclude: /dback-test-1.5/mount-dir')
 checkSub(out,'Backup has finished for the mounts above')
+
+console.log(out)
 
 cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4 dback-test-1.5 dback-test-1.6')
