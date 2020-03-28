@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -31,12 +32,14 @@ func packWithRestic(tmp, containerName, mountDestination string) {
 	if err != nil {
 		log.Println(err)
 		log.Println(string(stdoutStderr))
+		panic(`sdf`)
 	}
 	//log.Printf("%s\n", stdoutStderr)
 
-	files, err := ioutil.ReadDir(tmp + mountDestination)
+	files, err := ioutil.ReadDir(tmp)
 	if err != nil {
-		log.Fatal(err)
+		//log.Fatal(err)
+		//panic(`sdf`)
 	}
 
 	log.Println(`===`)
@@ -55,7 +58,7 @@ func packWithRestic(tmp, containerName, mountDestination string) {
 		log.Println(err)
 		log.Println(string(stdoutStderr))
 	}
-	//log.Printf("%s\n", stdoutStderr)
+	log.Printf("%s\n", stdoutStderr)
 
 }
 
@@ -73,15 +76,16 @@ func unpackTarToMyself(c types.Container, myContainer types.Container, m types.M
 	check(err)
 	defer tar.Close()
 
-	// lastSlashIdx := strings.LastIndex(m.Destination, `/`)
-	// destParent := m.Destination[:lastSlashIdx] //      "/var/www/lynx" -> "/var/www"        "/opt" -> "/"
-	// if destParent == `` {
-	// 	destParent = `/`
-	// }
+	lastSlashIdx := strings.LastIndex(m.Destination, `/`)
+	destParent := m.Destination[:lastSlashIdx] //      "/var/www/lynx" -> "/var/www"        "/opt" -> "/"
+	if destParent == `` {
+		destParent = `/`
+	}
 	// log.Println(`***`, m.Destination)
 	// log.Println(`###`, destParent)
+	os.MkdirAll(`/`+tmp+destParent, 0664)
 
-	check(cli.CopyToContainer(context.Background(), myContainer.ID, `/`+tmp, tar, types.CopyToContainerOptions{true, false}))
+	check(cli.CopyToContainer(context.Background(), myContainer.ID, `/`+tmp+destParent, tar, types.CopyToContainerOptions{true, false}))
 	packWithRestic(`/`+tmp, c.Names[0], m.Destination)
 
 }
