@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"sync"
 
 	"github.com/docker/docker/api/types"
@@ -12,6 +13,10 @@ import (
 )
 
 func main() {
+	if runtime.GOOS == "linux" {
+		check(os.MkdirAll(`/tmp`, 664))
+	}
+
 	args := os.Args[1:]
 
 	if len(args) == 0 {

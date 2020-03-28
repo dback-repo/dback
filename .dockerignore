@@ -1,7 +1,14 @@
 /.git
 /go-app/pkg
 /tests
-/node_modules
+/node_modules/go-win
+/node_modules/liteide-win
 /go-app/src/dback/dback-snapshots/*
 *.tar
 *.exe
+/go-app/src/cloud.google.com
+/go-app/src/github.com
+/go-app/src/go.opencensus.io
+/go-app/src/golang.org
+/go-app/src/google.golang.org
+/go-app/src/gopkg.in

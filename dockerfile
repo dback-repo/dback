@@ -7,6 +7,7 @@ RUN (cd /go/src/dback && go build -a -installsuffix cgo -ldflags="-s -w") & (cd 
 # dev version is compiled with debug info, and not compressed with UPX
 FROM scratch as dev
 COPY --from=builder /go/src/dback/dback-dev /bin/dback
+COPY node_modules/restic-linux/restic /bin/restic
 ENV DOCKER_API_VERSION 1.37
 ENTRYPOINT ["/bin/dback"]
 

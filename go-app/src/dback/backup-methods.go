@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"regexp"
-	"strings"
 	"sync"
 	"time"
 
@@ -20,8 +22,48 @@ func check(err error) {
 	}
 }
 
+func packWithRestic(tmp, containerName, mountDestination string) {
+	cmd := exec.Command(`/bin/restic`, `init`)
+	cmd.Dir = tmp
+	cmd.Env = append(os.Environ(), `RESTIC_REPOSITORY=/dback-snapshots`+containerName+mountDestination, `RESTIC_PASSWORD=sdf`)
+	//log.Println(`---`, `RESTIC_REPOSITORY=/dback-snapshots`+containerName+mountDestination)
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Println(err)
+		log.Println(string(stdoutStderr))
+	}
+	//log.Printf("%s\n", stdoutStderr)
+
+	files, err := ioutil.ReadDir(tmp + mountDestination)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println(`===`)
+	for _, file := range files {
+		log.Println(`===`, file.Name())
+	}
+
+	log.Println(`----`, tmp+mountDestination)
+	cmd = exec.Command(`/bin/restic`, `backup`, tmp+mountDestination)
+	log.Println(`***`, `/bin/restic`, `backup`, tmp+mountDestination)
+	cmd.Dir = tmp
+	cmd.Env = append(os.Environ(), `RESTIC_REPOSITORY=/dback-snapshots`+containerName+mountDestination, `RESTIC_PASSWORD=sdf`)
+	//log.Println(`---`, `RESTIC_REPOSITORY=/dback-snapshots`+containerName+mountDestination)
+	stdoutStderr, err = cmd.CombinedOutput()
+	if err != nil {
+		log.Println(err)
+		log.Println(string(stdoutStderr))
+	}
+	//log.Printf("%s\n", stdoutStderr)
+
+}
+
 func unpackTarToMyself(c types.Container, myContainer types.Container, m types.MountPoint) {
-	//check(os.MkdirAll(`/tmp`, 664))
+	tmp := fmt.Sprintf("%d", time.Now().UnixNano())
+
+	log.Println(tmp)
+	check(os.MkdirAll(tmp, 664))
 
 	cli, err := client.NewEnvClient()
 	check(err)
@@ -31,15 +73,17 @@ func unpackTarToMyself(c types.Container, myContainer types.Container, m types.M
 	check(err)
 	defer tar.Close()
 
-	lastSlashIdx := strings.LastIndex(m.Destination, `/`)
-	destParent := m.Destination[:lastSlashIdx] //      "/var/www/lynx" -> "/var/www"        "/opt" -> "/"
-	if destParent == `` {
-		destParent = `/`
-	}
+	// lastSlashIdx := strings.LastIndex(m.Destination, `/`)
+	// destParent := m.Destination[:lastSlashIdx] //      "/var/www/lynx" -> "/var/www"        "/opt" -> "/"
+	// if destParent == `` {
+	// 	destParent = `/`
+	// }
+	// log.Println(`***`, m.Destination)
+	// log.Println(`###`, destParent)
 
-	destParent = `/dback-snapshots` + c.Names[0] + m.Destination
+	check(cli.CopyToContainer(context.Background(), myContainer.ID, `/`+tmp, tar, types.CopyToContainerOptions{true, false}))
+	packWithRestic(`/`+tmp, c.Names[0], m.Destination)
 
-	check(cli.CopyToContainer(context.Background(), myContainer.ID, destParent, tar, types.CopyToContainerOptions{true, false}))
 }
 
 func backupMount(cli *client.Client, c types.Container, m types.MountPoint, wg *sync.WaitGroup) {
