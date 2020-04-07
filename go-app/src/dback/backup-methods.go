@@ -23,10 +23,17 @@ func check(err error) {
 	}
 }
 
-func packWithRestic(tmp, containerName, mountDestination string) {
+func packWithRestic(tmp, containerName, mountDestination, resticRepo, accKey, secKey string) {
+
 	cmd := exec.Command(`/bin/restic`, `init`)
 	cmd.Dir = tmp
-	cmd.Env = append(os.Environ(), `RESTIC_REPOSITORY=/dback-snapshots`+containerName+mountDestination, `RESTIC_PASSWORD=sdf`)
+	//cmd.Env = append(os.Environ(), `RESTIC_REPOSITORY=/dback-snapshots`+containerName+mountDestination, `RESTIC_PASSWORD=sdf`)
+	cmd.Env = append(os.Environ(),
+		`RESTIC_PASSWORD=sdf`,
+		`RESTIC_REPOSITORY=`+resticRepo+tmp,
+		`AWS_ACCESS_KEY_ID=`+accKey,
+		`AWS_SECRET_ACCESS_KEY=`+secKey)
+	//s3:https://s3.amazonaws.com/BUCKET_NAME
 	//log.Println(`---`, `RESTIC_REPOSITORY=/dback-snapshots`+containerName+mountDestination)
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
@@ -51,7 +58,12 @@ func packWithRestic(tmp, containerName, mountDestination string) {
 	cmd = exec.Command(`/bin/restic`, `backup`, tmp+mountDestination)
 	log.Println(`***`, `/bin/restic`, `backup`, tmp+mountDestination)
 	cmd.Dir = tmp
-	cmd.Env = append(os.Environ(), `RESTIC_REPOSITORY=/dback-snapshots`+containerName+mountDestination, `RESTIC_PASSWORD=sdf`)
+	cmd.Env = append(os.Environ(),
+		`RESTIC_PASSWORD=sdf`,
+		`RESTIC_REPOSITORY=`+resticRepo+tmp,
+		`AWS_ACCESS_KEY_ID=`+accKey,
+		`AWS_SECRET_ACCESS_KEY=`+secKey)
+
 	//log.Println(`---`, `RESTIC_REPOSITORY=/dback-snapshots`+containerName+mountDestination)
 	stdoutStderr, err = cmd.CombinedOutput()
 	if err != nil {
@@ -62,7 +74,7 @@ func packWithRestic(tmp, containerName, mountDestination string) {
 
 }
 
-func unpackTarToMyself(c types.Container, myContainer types.Container, m types.MountPoint) {
+func unpackTarToMyself(c types.Container, myContainer types.Container, m types.MountPoint, resticRepo, accKey, secKey string) {
 	tmp := fmt.Sprintf("%d", time.Now().UnixNano())
 
 	log.Println(tmp)
@@ -86,11 +98,11 @@ func unpackTarToMyself(c types.Container, myContainer types.Container, m types.M
 	os.MkdirAll(`/`+tmp+destParent, 0664)
 
 	check(cli.CopyToContainer(context.Background(), myContainer.ID, `/`+tmp+destParent, tar, types.CopyToContainerOptions{true, false}))
-	packWithRestic(`/`+tmp, c.Names[0], m.Destination)
+	packWithRestic(`/`+tmp, c.Names[0], m.Destination, resticRepo, accKey, secKey)
 
 }
 
-func backupMount(cli *client.Client, c types.Container, m types.MountPoint, wg *sync.WaitGroup) {
+func backupMount(cli *client.Client, c types.Container, m types.MountPoint, wg *sync.WaitGroup, resticRepo, accKey, secKey string) {
 	defer wg.Done()
 	cli, err := client.NewEnvClient()
 	check(err)
@@ -112,10 +124,10 @@ func backupMount(cli *client.Client, c types.Container, m types.MountPoint, wg *
 	myselfContainerID, err := os.Hostname()
 	check(err)
 
-	unpackTarToMyself(c, *getContainerByNameOrId(cli, myselfContainerID), m)
+	unpackTarToMyself(c, *getContainerByNameOrId(cli, myselfContainerID), m, resticRepo, accKey, secKey)
 }
 
-func backupContainer(c types.Container, wg *sync.WaitGroup, excludePattern string) {
+func backupContainer(c types.Container, wg *sync.WaitGroup, excludePattern, resticRepo, accKey, secKey string) {
 	defer wg.Done()
 
 	r, err := regexp.Compile(excludePattern)
@@ -155,7 +167,7 @@ func backupContainer(c types.Container, wg *sync.WaitGroup, excludePattern strin
 					var wgMount sync.WaitGroup
 					wgMount.Add(len(mounts))
 					for _, curMount := range mounts {
-						go backupMount(cli, c, curMount, &wgMount)
+						go backupMount(cli, c, curMount, &wgMount, resticRepo, accKey, secKey)
 					}
 					wgMount.Wait()
 

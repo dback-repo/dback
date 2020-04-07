@@ -13,6 +13,9 @@ import (
 )
 
 func main() {
+
+	var resticRepo, accKey, secKey string
+
 	if runtime.GOOS == "linux" {
 		check(os.MkdirAll(`/tmp`, 664))
 	}
@@ -51,6 +54,11 @@ Options:
 					return
 				}
 				excludePattern = args[2]
+
+				resticRepo = args[3]
+				accKey = args[4]
+				secKey = args[5]
+
 			default:
 				fmt.Println("Unknown parameter")
 				return
@@ -69,7 +77,7 @@ Options:
 		wg.Add(len(containers))
 
 		for _, curContainer := range containers {
-			go backupContainer(curContainer, &wg, excludePattern)
+			go backupContainer(curContainer, &wg, excludePattern, resticRepo, accKey, secKey)
 		}
 
 		wg.Wait()

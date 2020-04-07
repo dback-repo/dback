@@ -64,7 +64,7 @@ cmd('docker run -d --name dback-test-1.6 -v '+cd+'/data/mount-dir:/mount-dir -v 
 
 
 var out = ''
-try {out = cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-snapshots dback backup --exclude-mount "^/(drone.*|dback-test-1.5.*)$"').toString()}catch(ex){
+try {out = cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-snapshots dback backup --exclude-mount "^/(drone.*|dback-test-1.5.*)$" '+process.env.RESTIC_REPO+' '+process.env.ACC_KEY+' '+process.env.SEC_KEY).toString()}catch(ex){
 	console.log('---')
 	console.log(ex.stdout.toString())
 	console.log('---')
