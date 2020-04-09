@@ -64,7 +64,7 @@ cmd('docker run -d --name dback-test-1.6 -v '+cd+'/data/mount-dir:/mount-dir -v 
 
 
 var out = ''
-try {out = cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-snapshots dback backup --exclude-mount "^/(drone.*|dback-test-1.5.*)$" '+process.env.RESTIC_REPO+' '+process.env.ACC_KEY+' '+process.env.SEC_KEY).toString()}catch(ex){
+try {out = cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-snapshots dback backup --exclude-mount "^/(drone.*|dback-test-1.5.*)$" '+process.env.S3_ENDPOINT+' '+process.env.S3_BUCKET+' '+process.env.ACC_KEY+' '+process.env.SEC_KEY).toString()}catch(ex){
 	console.log('---')
 	console.log(ex.stdout.toString())
 	console.log('---')
@@ -81,5 +81,15 @@ checkSub(out,'exclude: /dback-test-1.5/mount-dir')
 checkSub(out,'Backup has finished for the mounts above')
 
 console.log(out)
+
+try {out = cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-snapshots dback restore '+process.env.S3_ENDPOINT+' '+process.env.S3_BUCKET+' '+process.env.ACC_KEY+' '+process.env.SEC_KEY).toString()}catch(ex){
+	console.log('-------')
+	console.log(ex.stdout.toString())
+	console.log('-------')
+	throw('failed')
+}
+
+console.log(out)
+
 
 cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4 dback-test-1.5 dback-test-1.6')
