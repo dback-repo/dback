@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -23,10 +22,10 @@ func check(err error) {
 	}
 }
 
-func packWithRestic(tmp, containerName, mountDestination, s3Endpoint, s3Bucket, accKey, secKey string) {
+func packWithRestic(containerName, mountDestination, s3Endpoint, s3Bucket, accKey, secKey string) {
 
 	cmd := exec.Command(`/bin/restic`, `init`)
-	cmd.Dir = tmp
+	cmd.Dir = containerName
 	//cmd.Env = append(os.Environ(), `RESTIC_REPOSITORY=/dback-snapshots`+containerName+mountDestination, `RESTIC_PASSWORD=sdf`)
 	cmd.Env = append(os.Environ(),
 		`RESTIC_PASSWORD=sdf`,
@@ -43,7 +42,7 @@ func packWithRestic(tmp, containerName, mountDestination, s3Endpoint, s3Bucket, 
 	}
 	//log.Printf("%s\n", stdoutStderr)
 
-	files, err := ioutil.ReadDir(tmp)
+	files, err := ioutil.ReadDir(containerName)
 	if err != nil {
 		//log.Fatal(err)
 		//panic(`sdf`)
@@ -54,10 +53,10 @@ func packWithRestic(tmp, containerName, mountDestination, s3Endpoint, s3Bucket, 
 		log.Println(`===`, file.Name())
 	}
 
-	log.Println(`----`, tmp+mountDestination)
-	cmd = exec.Command(`/bin/restic`, `backup`, tmp+mountDestination)
-	log.Println(`***`, `/bin/restic`, `backup`, tmp+mountDestination)
-	cmd.Dir = tmp
+	log.Println(`----`, containerName+mountDestination)
+	cmd = exec.Command(`/bin/restic`, `backup`, containerName+mountDestination)
+	log.Println(`***`, `/bin/restic`, `backup`, containerName+mountDestination)
+	cmd.Dir = containerName
 	cmd.Env = append(os.Environ(),
 		`RESTIC_PASSWORD=sdf`,
 		`RESTIC_REPOSITORY=s3:http://`+s3Endpoint+`/`+s3Bucket+containerName+mountDestination,
@@ -75,10 +74,10 @@ func packWithRestic(tmp, containerName, mountDestination, s3Endpoint, s3Bucket, 
 }
 
 func unpackTarToMyself(c types.Container, myContainer types.Container, m types.MountPoint, s3Endpoint, s3Bucket, accKey, secKey string) {
-	tmp := fmt.Sprintf("%d", time.Now().UnixNano())
+	//tmp := fmt.Sprintf("%d", time.Now().UnixNano())
 
-	log.Println(tmp)
-	check(os.MkdirAll(tmp, 664))
+	//log.Println(tmp)
+	//check(os.MkdirAll(c.Names[0], 664))
 
 	cli, err := client.NewEnvClient()
 	check(err)
@@ -95,10 +94,10 @@ func unpackTarToMyself(c types.Container, myContainer types.Container, m types.M
 	}
 	// log.Println(`***`, m.Destination)
 	// log.Println(`###`, destParent)
-	os.MkdirAll(`/`+tmp+destParent, 0664)
+	os.MkdirAll(c.Names[0]+destParent, 0664)
 
-	check(cli.CopyToContainer(context.Background(), myContainer.ID, `/`+tmp+destParent, tar, types.CopyToContainerOptions{true, false}))
-	packWithRestic(`/`+tmp, c.Names[0], m.Destination, s3Endpoint, s3Bucket, accKey, secKey)
+	check(cli.CopyToContainer(context.Background(), myContainer.ID, c.Names[0]+destParent, tar, types.CopyToContainerOptions{true, false}))
+	packWithRestic(c.Names[0], m.Destination, s3Endpoint, s3Bucket, accKey, secKey)
 }
 
 func backupMount(cli *client.Client, c types.Container, m types.MountPoint, wg *sync.WaitGroup, s3Endpoint, s3Bucket, accKey, secKey string) {

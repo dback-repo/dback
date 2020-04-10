@@ -21,10 +21,10 @@ import (
 	"github.com/docker/docker/client"
 )
 
-func pullFilesFromRestic(tmp, containerName, mountDestination, s3Endpoint, s3Bucket, accKey, secKey string) {
+func pullFilesFromRestic(containerName, mountDestination, s3Endpoint, s3Bucket, accKey, secKey string) {
 
 	cmd := exec.Command(`/bin/restic`, `restore`, `latest`, `--target`, `.`)
-	cmd.Dir = tmp
+	cmd.Dir = `/`
 	//cmd.Env = append(os.Environ(), `RESTIC_REPOSITORY=/dback-snapshots`+containerName+mountDestination, `RESTIC_PASSWORD=sdf`)
 	cmd.Env = append(os.Environ(),
 		`RESTIC_PASSWORD=sdf`,
@@ -41,11 +41,11 @@ func pullFilesFromRestic(tmp, containerName, mountDestination, s3Endpoint, s3Buc
 	}
 	log.Printf("%s\n", stdoutStderr)
 
-	files, err := ioutil.ReadDir(tmp)
+	files, err := ioutil.ReadDir(`/`)
 	check(err)
 
 	for _, f := range files {
-		fmt.Println(f.Name())
+		fmt.Println(`->`, f.Name())
 	}
 
 	// files, err := ioutil.ReadDir(tmp)
@@ -117,10 +117,10 @@ func restoreContainers(containers []string, s3Endpoint, s3Bucket, accKey, secKey
 func restoreMount(c types.Container, m types.MountPoint, wg *sync.WaitGroup, s3Endpoint, s3Bucket, accKey, secKey string) {
 	defer wg.Done()
 
-	tmp := fmt.Sprintf("%d", time.Now().UnixNano())
-	check(os.MkdirAll(tmp, 664))
+	//tmp := fmt.Sprintf("%d", time.Now().UnixNano())
+	//check(os.MkdirAll(c.Names[0], 664))
 
-	pullFilesFromRestic(`/`+tmp, c.Names[0], m.Destination, s3Endpoint, s3Bucket, accKey, secKey)
+	pullFilesFromRestic(c.Names[0], m.Destination, s3Endpoint, s3Bucket, accKey, secKey)
 
 	// cli, err := client.NewEnvClient()
 	// check(err)
