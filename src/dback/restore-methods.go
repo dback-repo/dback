@@ -2,9 +2,15 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
+
+	//"io/ioutil"
 	"log"
 	"os"
-	"strings"
+	"os/exec"
+
+	//	"strings"
 	"sync"
 	"time"
 
@@ -14,6 +20,63 @@ import (
 
 	"github.com/docker/docker/client"
 )
+
+func pullFilesFromRestic(tmp, containerName, mountDestination, s3Endpoint, s3Bucket, accKey, secKey string) {
+
+	cmd := exec.Command(`/bin/restic`, `restore`, `latest`, `--target`, `.`)
+	cmd.Dir = tmp
+	//cmd.Env = append(os.Environ(), `RESTIC_REPOSITORY=/dback-snapshots`+containerName+mountDestination, `RESTIC_PASSWORD=sdf`)
+	cmd.Env = append(os.Environ(),
+		`RESTIC_PASSWORD=sdf`,
+		`RESTIC_REPOSITORY=s3:http://`+s3Endpoint+`/`+s3Bucket+containerName+mountDestination,
+		`AWS_ACCESS_KEY_ID=`+accKey,
+		`AWS_SECRET_ACCESS_KEY=`+secKey)
+	//s3:https://s3.amazonaws.com/BUCKET_NAME
+	//log.Println(`---`, `RESTIC_REPOSITORY=/dback-snapshots`+containerName+mountDestination)
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Println(err)
+		log.Println(string(stdoutStderr))
+		//panic(`sdf`)
+	}
+	log.Printf("%s\n", stdoutStderr)
+
+	files, err := ioutil.ReadDir(tmp)
+	check(err)
+
+	for _, f := range files {
+		fmt.Println(f.Name())
+	}
+
+	// files, err := ioutil.ReadDir(tmp)
+	// if err != nil {
+	// 	//log.Fatal(err)
+	// 	//panic(`sdf`)
+	// }
+
+	// log.Println(`===`)
+	// for _, file := range files {
+	// 	log.Println(`===`, file.Name())
+	// }
+
+	// log.Println(`----`, tmp+mountDestination)
+	// cmd = exec.Command(`/bin/restic`, `backup`, tmp+mountDestination)
+	// log.Println(`***`, `/bin/restic`, `backup`, tmp+mountDestination)
+	// cmd.Dir = tmp
+	// cmd.Env = append(os.Environ(),
+	// 	`RESTIC_PASSWORD=sdf`,
+	// 	`RESTIC_REPOSITORY=s3:http://`+s3Endpoint+`/`+s3Bucket+containerName+mountDestination,
+	// 	`AWS_ACCESS_KEY_ID=`+accKey,
+	// 	`AWS_SECRET_ACCESS_KEY=`+secKey)
+
+	// //log.Println(`---`, `RESTIC_REPOSITORY=/dback-snapshots`+containerName+mountDestination)
+	// stdoutStderr, err = cmd.CombinedOutput()
+	// if err != nil {
+	// 	log.Println(err)
+	// 	log.Println(string(stdoutStderr))
+	// }
+	// log.Printf("%s\n", stdoutStderr)
+}
 
 //list of saved containers == list of folders in /dback-snapshots
 func getBackupsContainerList(s3Endpoint, s3Bucket, accKey, secKey string) []string {
@@ -31,43 +94,49 @@ func getBackupsContainerList(s3Endpoint, s3Bucket, accKey, secKey string) []stri
 	containers := []string{}
 	for object := range minioClient.ListObjects(s3Bucket, ``, false, doneCh) {
 		check(object.Err)
-		containers = append(containers, object.Key)
+		containers = append(containers, object.Key[:len(object.Key)-1])
 	}
 
 	return containers
 }
 
-func restoreContainers(containers []string) {
-	log.Println(containers)
-	return
+func restoreContainers(containers []string, s3Endpoint, s3Bucket, accKey, secKey string) {
+	// log.Println(containers)
+	// return
 
 	var wg sync.WaitGroup
 	wg.Add(len(containers))
 
 	for _, curContainer := range containers {
-		go restoreContainer(curContainer, &wg)
+		go restoreContainer(curContainer, &wg, s3Endpoint, s3Bucket, accKey, secKey)
 	}
 
 	wg.Wait()
 }
 
-func restoreMount(c types.Container, m types.MountPoint, wg *sync.WaitGroup) {
+func restoreMount(c types.Container, m types.MountPoint, wg *sync.WaitGroup, s3Endpoint, s3Bucket, accKey, secKey string) {
 	defer wg.Done()
-	cli, err := client.NewEnvClient()
-	check(err)
-	defer cli.Close()
 
-	tar, err := os.Open(`dback-snapshots/` + c.Names[0] + m.Destination + `/tar.tar`)
-	check(err)
+	tmp := fmt.Sprintf("%d", time.Now().UnixNano())
+	check(os.MkdirAll(tmp, 664))
 
-	lastSlashIdx := strings.LastIndex(m.Destination, `/`)
-	destParent := m.Destination[:lastSlashIdx] //      "/var/www/lynx" -> "/var/www"        "/opt" -> "/"
-	if destParent == `` {
-		destParent = `/`
-	}
+	pullFilesFromRestic(`/`+tmp, c.Names[0], m.Destination, s3Endpoint, s3Bucket, accKey, secKey)
 
-	check(cli.CopyToContainer(context.Background(), c.ID, destParent, tar, types.CopyToContainerOptions{true, false}))
-	log.Println(c.Names[0] + m.Destination)
+	// cli, err := client.NewEnvClient()
+	// check(err)
+	// defer cli.Close()
+
+	// tar, err := os.Open(`dback-snapshots/` + c.Names[0] + m.Destination + `/tar.tar`)
+	// check(err)
+
+	// lastSlashIdx := strings.LastIndex(m.Destination, `/`)
+	// destParent := m.Destination[:lastSlashIdx] //      "/var/www/lynx" -> "/var/www"        "/opt" -> "/"
+	// if destParent == `` {
+	// 	destParent = `/`
+	// }
+
+	// check(cli.CopyToContainer(context.Background(), c.ID, destParent, tar, types.CopyToContainerOptions{true, false}))
+	// log.Println(c.Names[0] + m.Destination)
 }
 
 //return nil if not found
@@ -88,7 +157,7 @@ func getContainerByNameOrId(cli *client.Client, targetName string) *types.Contai
 	return nil
 }
 
-func restoreContainer(containerName string, wg *sync.WaitGroup) {
+func restoreContainer(containerName string, wg *sync.WaitGroup, s3Endpoint, s3Bucket, accKey, secKey string) {
 	defer wg.Done()
 
 	cli, err := client.NewEnvClient()
@@ -113,7 +182,7 @@ func restoreContainer(containerName string, wg *sync.WaitGroup) {
 				var wgMount sync.WaitGroup
 				wgMount.Add(len(c.Mounts))
 				for _, curMount := range c.Mounts {
-					go restoreMount(*c, curMount, &wgMount)
+					go restoreMount(*c, curMount, &wgMount, s3Endpoint, s3Bucket, accKey, secKey)
 				}
 				wgMount.Wait()
 

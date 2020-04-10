@@ -4,8 +4,21 @@ module.exports = class Tools {
         new(require('../env.js'));
 		this.mv = require('fs').renameSync
 		this.del = require('fs').unlinkSync
-		this.cmd = require('child_process').execSync
+		this.ccmd = require('child_process').execSync
 		this.r = process.env.REPO
+    }
+
+    cmd(c, options) {
+    	try{
+    		//execSync = require('child_process').execSync
+    		this.ccmd(c, options)
+    	}catch(e){
+    		console.log('==========================Command failed: '+c)
+    		console.log('==========================Command output=============================')
+    		console.log(e.stdout.toString())
+    		console.log(e.stack)
+    		throw 'cmd failed'
+    	}
     }
 
   	//env must be stored at ../env.js

@@ -90,7 +90,7 @@ Options:
 		accKey = args[3]
 		secKey = args[4]
 
-		restoreContainers(getBackupsContainerList(s3Endpoint, s3Bucket, accKey, secKey))
+		restoreContainers(getBackupsContainerList(s3Endpoint, s3Bucket, accKey, secKey), s3Endpoint, s3Bucket, accKey, secKey)
 		log.Println(`Restore has finished for the mounts above`)
 	case `help`:
 		fmt.Println(`Usage:  dback [OPTIONS] COMMAND
