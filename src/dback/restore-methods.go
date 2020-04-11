@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"io/ioutil"
+	"io"
+	"strings"
 
 	//"io/ioutil"
 	"log"
@@ -41,12 +41,11 @@ func pullFilesFromRestic(containerName, mountDestination, s3Endpoint, s3Bucket, 
 	}
 	log.Printf("%s\n", stdoutStderr)
 
-	files, err := ioutil.ReadDir(`/`)
-	check(err)
-
-	for _, f := range files {
-		fmt.Println(`->`, f.Name())
-	}
+	// files, err := ioutil.ReadDir(`/`)
+	// check(err)
+	// for _, f := range files {
+	// 	fmt.Println(`->`, f.Name())
+	// }
 
 	// files, err := ioutil.ReadDir(tmp)
 	// if err != nil {
@@ -114,29 +113,53 @@ func restoreContainers(containers []string, s3Endpoint, s3Bucket, accKey, secKey
 	wg.Wait()
 }
 
+func packTarFromMyself(c types.Container, myContainer types.Container, m types.MountPoint) {
+	cli, err := client.NewEnvClient()
+	check(err)
+	defer cli.Close()
+
+	check(os.MkdirAll(`dback-snapshots/`+c.Names[0]+m.Destination, 0664))
+
+	reader, _, err := cli.CopyFromContainer(context.Background(), myContainer.ID, c.Names[0]+m.Destination)
+	check(err)
+
+	outFile, err := os.Create(`dback-snapshots/` + c.Names[0] + m.Destination + `/tar.tar`)
+	check(err)
+	defer outFile.Close()
+	_, err = io.Copy(outFile, reader)
+	check(err)
+
+	//log.Println(`make backup: ` + c.Names[0] + m.Destination)
+
+	// myselfContainerID, err := os.Hostname()
+	// check(err)
+}
+
 func restoreMount(c types.Container, m types.MountPoint, wg *sync.WaitGroup, s3Endpoint, s3Bucket, accKey, secKey string) {
 	defer wg.Done()
 
-	//tmp := fmt.Sprintf("%d", time.Now().UnixNano())
-	//check(os.MkdirAll(c.Names[0], 664))
+	cli, err := client.NewEnvClient()
+	check(err)
+	defer cli.Close()
 
 	pullFilesFromRestic(c.Names[0], m.Destination, s3Endpoint, s3Bucket, accKey, secKey)
 
-	// cli, err := client.NewEnvClient()
-	// check(err)
-	// defer cli.Close()
+	myselfContainerID, err := os.Hostname()
+	check(err)
 
-	// tar, err := os.Open(`dback-snapshots/` + c.Names[0] + m.Destination + `/tar.tar`)
-	// check(err)
+	packTarFromMyself(c, *getContainerByNameOrId(cli, myselfContainerID), m)
 
-	// lastSlashIdx := strings.LastIndex(m.Destination, `/`)
-	// destParent := m.Destination[:lastSlashIdx] //      "/var/www/lynx" -> "/var/www"        "/opt" -> "/"
-	// if destParent == `` {
-	// 	destParent = `/`
-	// }
+	tar, err := os.Open(`dback-snapshots/` + c.Names[0] + m.Destination + `/tar.tar`)
+	check(err)
 
-	// check(cli.CopyToContainer(context.Background(), c.ID, destParent, tar, types.CopyToContainerOptions{true, false}))
-	// log.Println(c.Names[0] + m.Destination)
+	lastSlashIdx := strings.LastIndex(m.Destination, `/`)
+	destParent := m.Destination[:lastSlashIdx] //      "/var/www/lynx" -> "/var/www"        "/opt" -> "/"
+	if destParent == `` {
+		destParent = `/`
+	}
+
+	check(cli.CopyToContainer(context.Background(), c.ID, destParent, tar, types.CopyToContainerOptions{true, false}))
+	log.Println(c.Names[0] + m.Destination)
 }
 
 //return nil if not found
