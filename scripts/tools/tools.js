@@ -15,8 +15,12 @@ module.exports = class Tools {
     	}catch(e){
     		console.log('==========================Command failed: '+c)
     		console.log('==========================Command output=============================')
-    		console.log(e.stdout.toString())
-    		console.log(e.stack)
+    		if (e.stdout){
+    			console.log(e.stdout.toString())
+    		}
+    		if (e.stack){
+	    		console.log(e.stack)
+	    	}
     		throw 'cmd failed'
     	}
     }
