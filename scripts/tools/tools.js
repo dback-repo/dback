@@ -11,16 +11,17 @@ module.exports = class Tools {
     cmd(c, options) {
     	try{
     		//execSync = require('child_process').execSync
-    		this.ccmd(c, options)
+    		return this.ccmd(c, options)
     	}catch(e){
     		console.log('==========================Command failed: '+c)
     		console.log('==========================Command output=============================')
-    		if (e.stdout){
+       		if (e.stdout){
     			console.log(e.stdout.toString())
     		}
     		if (e.stack){
 	    		console.log(e.stack)
 	    	}
+    		console.log('==========================/Command output=============================')
     		throw 'cmd failed'
     	}
     }
