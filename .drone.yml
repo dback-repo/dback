@@ -13,6 +13,15 @@ steps:
       from_secret: DBACK_DOCKER_LOGIN
     DBACK_DOCKER_PASSWORD:
       from_secret: DBACK_DOCKER_PASSWORD
+    S3_ENDPOINT:
+      from_secret: S3_ENDPOINT
+    S3_BUCKET:
+      from_secret: S3_BUCKET
+    ACC_KEY:
+      from_secret: ACC_KEY
+    SEC_KEY:
+      from_secret: SEC_KEY
+
   volumes:
   - name: dockersocket
     path: /var/run/docker.sock
