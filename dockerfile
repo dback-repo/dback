@@ -3,7 +3,7 @@ RUN apk update && apk add build-base=0.5-r1
 COPY node_modules/restic-linux/restic /bin/restic
 COPY src /go/src
 ENV CGO_ENABLED=0
-RUN cd /go/src/dback && go build -a -installsuffix cgo -ldflags="-s -w" && go build -a -installsuffix cgo -o dback-dev && chmod +x /bin/restic
+RUN cd /go/src/dback && go build -a -installsuffix cgo -ldflags="-s -w" && go build -a -installsuffix cgo -o dback-dev && chmod -R 777 /bin
 
 
 # dev version is compiled with debug info, and not compressed with UPX
