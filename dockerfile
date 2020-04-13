@@ -18,5 +18,6 @@ RUN apk add upx=3.95-r2 && cd /go/src/dback && upx --brute dback
 FROM scratch as prod
 COPY --from=compressor /go/src/dback/dback /bin/dback
 COPY node_modules/restic-linux/restic /bin/restic
+RUN chmod +x /bin/restic
 ENV DOCKER_API_VERSION 1.37
 ENTRYPOINT ["/bin/dback"]
