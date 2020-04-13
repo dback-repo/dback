@@ -7,7 +7,7 @@
     "iter": "npm run build -- dev && npm run test",
     "iterprod": "npm run build -- prod && npm run test && npm run deploy"
   },
-  "devDependencies": {
+  "dependencies": {
     "restic-linux": "0.9.61"
   }
 }
