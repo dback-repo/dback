@@ -5,5 +5,4 @@
 *.tar
 /tests/test1-save-two-containers/tmp
 /tests/test1-save-two-containers/tmp-old
-/src/github.com
 /secrets
