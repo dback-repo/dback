@@ -28,6 +28,7 @@ steps:
   commands:
     - apk update
     - apk add npm=12.15.0-r1
+    - npm i
     - npm run iterprod
 volumes:
 - name: dockersocket
