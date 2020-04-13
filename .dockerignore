@@ -1,4 +1,11 @@
 /.git
-/go-app/pkg
+/pkg
 /tests
-/node_modules
+/node_modules/go-win
+/node_modules/liteide-win
+/src/dback/dback-snapshots/*
+*.tar
+*.exe
+/src/cloud.google.com
+/src/go.opencensus.io
+/src/google.golang.org

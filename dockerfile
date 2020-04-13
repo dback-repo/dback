@@ -1,12 +1,13 @@
-FROM golang:1.13.7-alpine3.11 as builder
+FROM golang:1.14.1-alpine3.11 as builder
 RUN apk update && apk add build-base=0.5-r1
-COPY go-app/src /go/src
+COPY src /go/src
 ENV CGO_ENABLED=0
 RUN (cd /go/src/dback && go build -a -installsuffix cgo -ldflags="-s -w") & (cd /go/src/dback && go build -a -installsuffix cgo -o dback-dev) ; wait
 
 # dev version is compiled with debug info, and not compressed with UPX
 FROM scratch as dev
 COPY --from=builder /go/src/dback/dback-dev /bin/dback
+COPY node_modules/restic-linux/restic /bin/restic
 ENV DOCKER_API_VERSION 1.37
 ENTRYPOINT ["/bin/dback"]
 

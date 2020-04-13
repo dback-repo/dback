@@ -6,5 +6,8 @@
     "deploy": "node scripts/deploy.js",
     "iter": "npm run build -- dev && npm run test",
     "iterprod": "npm run build -- prod && npm run test && npm run deploy"
+  },
+  "devDependencies": {
+    "restic-linux": "0.9.61"
   }
 }

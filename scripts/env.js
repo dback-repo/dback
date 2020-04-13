@@ -14,7 +14,7 @@ module.exports = class Env {
 
     	process.env['REPO'] = 					require('path').resolve(__dirname+'/..')
 
-        process.env['GOPATH'] = 				process.env['REPO']+'/go-app'
+        process.env['GOPATH'] = 				process.env['REPO']
         process.env['GOROOT'] = 				process.env['REPO']+'/node_modules/go-win'
 		if (process.platform === "linux"){
         	process.env['GOROOT'] = 			process.env['REPO']+'/node_modules/go-linux'

@@ -1,9 +1,9 @@
 /node_modules
 *.exe
 /docker/dback
-/go-app/pkg/
+/pkg/
 *.tar
 /tests/test1-save-two-containers/tmp
 /tests/test1-save-two-containers/tmp-old
-/go-app/src/github.com
+/src/github.com
 /secrets
