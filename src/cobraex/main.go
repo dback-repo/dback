@@ -1,8 +1,10 @@
 package main
 
-import "cobraex/cli"
+import (
+	"cobraex/cli"
+	"log"
+)
 
 func main() {
-	//cmd.Execute()
-	cli.Execute()
+	log.Println(cli.ParseCLI())
 }
