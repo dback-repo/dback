@@ -1,4 +1,4 @@
-package cmd
+package cli
 
 import (
 	"fmt"
@@ -44,7 +44,7 @@ Options:
 	},
 }
 
-func init() {
-	rootCmd.AddCommand(backupCmd)
-	backupCmd.PersistentFlags().StringVarP(&exclude, "exclude", "x", ``, "Exclude containers by name, matched with RegEx")
-}
+// func init() {
+// 	rootCmd.AddCommand(backupCmd)
+// 	backupCmd.PersistentFlags().StringVarP(&exclude, "exclude", "x", ``, "Exclude containers by name, matched with RegEx")
+// }

@@ -1,4 +1,4 @@
-package cmd
+package cli
 
 import (
 	"fmt"
@@ -21,6 +21,6 @@ to quickly create a Cobra application.`,
 	},
 }
 
-func init() {
-	rootCmd.AddCommand(restoreCmd)
-}
+// func init() {
+// 	rootCmd.AddCommand(restoreCmd)
+// }

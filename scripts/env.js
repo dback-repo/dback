@@ -23,6 +23,7 @@ module.exports = class Env {
         process.env['PATH'] += 					sep+process.env['GOPATH']+'/bin'
         process.env['PATH'] += 					sep+process.env['GOROOT']+'/bin'
         process.env['PATH'] += 					sep+process.env['REPO']+'/node_modules/.bin'
+        process.env['PATH'] +=                  sep+process.env['REPO']+'/node_modules/golangci-lint'
         process.env['PATH'] += 					sep+process.env['REPO']+'/node_modules/upx-win'
         process.env['PATH'] += 					sep+process.env['REPO']+'/node_modules/upx-linux'        
         process.env['PATH'] += 					sep+process.env['REPO']+'/node_modules/liteide-win/bin'

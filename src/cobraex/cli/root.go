@@ -1,4 +1,4 @@
-package cmd
+package cli
 
 import (
 	"fmt"
@@ -32,7 +32,7 @@ func Execute() {
 
 var emulate bool
 
-func init() {
-	rootCmd.PersistentFlags().BoolVarP(&emulate, "emulate", "e", false,
-		"emulate an action, and show list of items will be affected")
-}
+// func init() {
+// 	rootCmd.PersistentFlags().BoolVarP(&emulate, "emulate", "e", false,
+// 		"emulate an action, and show list of items will be affected")
+// }

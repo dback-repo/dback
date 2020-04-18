@@ -8,6 +8,7 @@
     "iterprod": "npm run build -- prod && npm run test && npm run deploy"
   },
   "dependencies": {
-    "restic-linux": "0.9.61"
+    "restic-linux": "0.9.61",
+    "golangci-lint": "0.0.1"
   }
 }

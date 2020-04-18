@@ -1,7 +1,8 @@
 package main
 
-import "cobraex/cmd"
+import "cobraex/cli"
 
 func main() {
-	cmd.Execute()
+	//cmd.Execute()
+	cli.Execute()
 }
