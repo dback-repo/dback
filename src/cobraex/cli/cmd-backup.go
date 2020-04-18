@@ -22,14 +22,14 @@ Options:
     ignore all mounts starts with "/drone", or "/dback-test-1.5"`,
 		Run: func(cmd *cobra.Command, args []string) {
 			reqest.Command = cmd.Use
-			reqest.Flags[`emulate`] = cmd.Flag(`emulate`).Value.String()
-			reqest.Flags[`exclude`] = cmd.Flag(`exclude`).Value.String()
+			reqest.Flags[`emulate`] = []string{cmd.Flag(`emulate`).Value.String()}
+			var err error
+			reqest.Flags[`exclude`], err = cmd.PersistentFlags().GetStringSlice(`exclude`)
+			check(err)
 			reqest.Args = args
 		},
 	}
-	exclude := ``
-	c.PersistentFlags().StringVarP(&exclude, "exclude", "x", ``,
-		"exclude containers by name, matched with RegEx")
+	c.PersistentFlags().StringSliceP("exclude", "x", []string{}, "exclude containers by name, matched with RegEx")
 
 	return &c
 }

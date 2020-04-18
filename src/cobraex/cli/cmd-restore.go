@@ -16,8 +16,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			reqest.Command = cmd.Use
-			reqest.Flags[`emulate`] = cmd.Flag(`emulate`).Value.String()
-			//reqest.Args = args
+			reqest.Flags[`emulate`] = []string{cmd.Flag(`emulate`).Value.String()}
 		},
 	}
 }

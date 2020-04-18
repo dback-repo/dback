@@ -12,12 +12,12 @@ func check(err error) {
 
 type Request struct {
 	Command string
-	Flags   map[string]string
+	Flags   map[string][]string
 	Args    []string
 }
 
 func NewRequest() Request {
-	return Request{``, make(map[string]string), []string{}}
+	return Request{``, make(map[string][]string), []string{}}
 }
 
 type cliParser struct {
