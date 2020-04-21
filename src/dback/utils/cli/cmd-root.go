@@ -6,7 +6,7 @@ import (
 
 func NewRootCommand() *cobra.Command {
 	c := cobra.Command{
-		Use:   "cobraex",
+		Use:   "dback",
 		Short: "Make backup of all mounts for all of containers",
 		Long: `Dback is application for observe docker containers, do incremental backups 
 of their mounts (bind and volumes), and pass it to S3 bucket. 
