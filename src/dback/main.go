@@ -1,6 +1,7 @@
 package main
 
 import (
+	"dback/logic"
 	"dback/utils/cli"
 	"dback/utils/docker"
 	"log"
@@ -17,9 +18,9 @@ func main() {
 
 	switch cliRequest.Command {
 	case `backup`:
-		backup(dockerClient, f[`emulate`], f[`x`])
+		logic.Backup(dockerClient, f[`emulate`], f[`x`])
 	case `restore`:
-		restore(dockerClient, f[`emulate`])
+		logic.Restore(dockerClient, f[`emulate`])
 	case ``: //no command provided. Parse CLI is already printed an advice
 		os.Exit(1)
 	default:
