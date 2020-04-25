@@ -10,6 +10,6 @@
   },
   "dependencies": {
     "restic-linux": "0.9.61",
-    "golangci-lint": "0.0.1"
+    "golangci-lint": "0.0.2"
   }
 }
