@@ -1,10 +1,12 @@
 package cli
 
 import (
+	"cli"
+
 	"github.com/spf13/cobra"
 )
 
-func NewRestoreCommand(reqest *Request) *cobra.Command {
+func NewRestoreCommand(reqest *cli.Request) *cobra.Command {
 	return &cobra.Command{
 		Use:   "restore",
 		Short: "restore backups from s3 to exist mounts",

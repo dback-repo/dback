@@ -1,11 +1,11 @@
-package main
+package cli
 
 import (
-	"dback/utils/cli"
+	"cli"
 	"dback/utils/dockerwrapper"
 )
 
-func verifyCliReq(req cli.Request) (dockerwrapper.EmulateFlag, []dockerwrapper.ExcludePattern) {
+func VerifyAndCast(req cli.Request) (dockerwrapper.EmulateFlag, []dockerwrapper.ExcludePattern) {
 	f := req.Flags
 	excludePatterns := dockerwrapper.NewExcludePatterns(f[`exclude`])
 	isEmulation := dockerwrapper.NewEmulateFlag(f[`emulate`][0])

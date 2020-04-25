@@ -1,10 +1,12 @@
 package cli
 
 import (
+	"cli"
+
 	"github.com/spf13/cobra"
 )
 
-func NewBackupCommand(reqest *Request) *cobra.Command {
+func NewBackupCommand(reqest *cli.Request) *cobra.Command {
 	c := cobra.Command{
 		Use:   "backup",
 		Short: "Make backup, and pass it to S3 bucket",

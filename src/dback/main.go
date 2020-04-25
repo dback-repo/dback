@@ -11,7 +11,7 @@ import (
 
 func main() {
 	cliRequest := cli.ParseCLI()
-	isEmulation, excludePatterns := verifyCliReq(cliRequest)
+	isEmulation, excludePatterns := cli.VerifyAndCast(cliRequest)
 
 	dockerWrapper := &dockerwrapper.DockerWrapper{Docker: dockerbuilder.NewDockerClient()}
 	defer dockerWrapper.Close()
