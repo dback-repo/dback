@@ -3,7 +3,8 @@ package main
 import (
 	"dback/logic"
 	"dback/utils/cli"
-	"dback/utils/docker"
+	"dback/utils/dockerbuilder"
+	"dback/utils/dockerwrapper"
 	"log"
 	"os"
 )
@@ -11,17 +12,17 @@ import (
 func main() {
 	cliRequest := cli.ParseCLI() //will be interrupted with printing adivce here, on parsing error
 
-	dockerClient := docker.MustNewDockerClient()
-	//dockerClient.CheckWeAreInDocker()
+	dockerWrapper := &dockerwrapper.DockerWrapper{Cli: dockerbuilder.NewDockerClient()}
 
 	f := cliRequest.Flags
 
 	switch cliRequest.Command {
 	case `backup`:
-		logic.Backup(dockerClient, f[`emulate`], f[`x`])
+		logic.Backup(dockerWrapper, f[`emulate`], f[`x`])
 	case `restore`:
-		logic.Restore(dockerClient, f[`emulate`])
-	case ``: //no command provided. Parse CLI is already printed an advice
+		logic.Restore()
+	case ``:
+		//no command provided. Parse CLI is already printed an advice
 		os.Exit(1)
 	default:
 		log.Fatalln(`Unrecognized command ` + cliRequest.Command +

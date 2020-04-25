@@ -1,11 +1,12 @@
 {
   "scripts": {
     "start-ide": "node scripts/start-ide.js",
+    "lint": "node scripts/lint.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
     "deploy": "node scripts/deploy.js",
-    "iter": "npm run build -- dev && npm run test",
-    "iterprod": "npm run build -- prod && npm run test && npm run deploy"
+    "iter": "npm run lint && npm run build -- dev && npm run test",
+    "iterprod": "npm run lint && npm run build -- prod && npm run test && npm run deploy"
   },
   "dependencies": {
     "restic-linux": "0.9.61",
