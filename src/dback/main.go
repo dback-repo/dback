@@ -10,15 +10,15 @@ import (
 )
 
 func main() {
-	cliRequest := cli.ParseCLI() //will be interrupted with printing adivce here, on parsing error
+	cliRequest := cli.ParseCLI()
+	isEmulation, excludePatterns := verifyCliReq(cliRequest)
 
-	dockerWrapper := &dockerwrapper.DockerWrapper{Cli: dockerbuilder.NewDockerClient()}
-
-	f := cliRequest.Flags
+	dockerWrapper := &dockerwrapper.DockerWrapper{Docker: dockerbuilder.NewDockerClient()}
+	defer dockerWrapper.Close()
 
 	switch cliRequest.Command {
 	case `backup`:
-		logic.Backup(dockerWrapper, f[`emulate`], f[`x`])
+		logic.Backup(dockerWrapper, isEmulation, excludePatterns)
 	case `restore`:
 		logic.Restore()
 	case ``:

@@ -5,6 +5,8 @@ import (
 	"log"
 )
 
-func Backup(dockerWrapper *dockerwrapper.DockerWrapper, emulate []string, exclude []string) {
+func Backup(dockerWrapper *dockerwrapper.DockerWrapper, isEmulation dockerwrapper.EmulateFlag,
+	excludePatterns []dockerwrapper.ExcludePattern) {
 	log.Println(`Backup started`)
+	dockerWrapper.GetContanersAndMountsForBackup(excludePatterns)
 }

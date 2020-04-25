@@ -7,7 +7,7 @@ import (
 )
 
 type DockerWrapper struct {
-	Cli *client.Client
+	Docker *client.Client
 }
 
 func check(err error, msg string) {
@@ -17,5 +17,9 @@ func check(err error, msg string) {
 }
 
 func (t *DockerWrapper) Close() {
-	check(t.Cli.Close(), `Cannot close connection docker connection`)
+	check(t.Docker.Close(), `Cannot close connection docker connection`)
+}
+
+func (t *DockerWrapper) GetContanersAndMountsForBackup(excludePatterns []ExcludePattern) {
+	//check(t.docker.Close(), `Cannot close connection docker connection`)
 }

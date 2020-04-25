@@ -18,7 +18,7 @@ func NewDockerClient() *client.Client {
 Check:
 - dback runs inside docker container, with passed docker socket 
 docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock dback .......
-TODO: more details`)
+TOODO: more details`)
 
 	return cli
 }
