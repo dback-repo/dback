@@ -5,6 +5,7 @@ import (
 	"dback/utils/cli"
 	"dback/utils/dockerbuilder"
 	"dback/utils/dockerwrapper"
+	"dback/utils/resticwrapper"
 	"log"
 	"os"
 )
@@ -16,9 +17,11 @@ func main() {
 	dockerWrapper := &dockerwrapper.DockerWrapper{Docker: dockerbuilder.NewDockerClient()}
 	defer dockerWrapper.Close()
 
+	resticWrapper := resticwrapper.NewResticWrapper(``, ``, ``, ``, ``)
+
 	switch cliRequest.Command {
 	case `backup`:
-		logic.Backup(dockerWrapper, isEmulation, excludePatterns, 1)
+		logic.Backup(dockerWrapper, isEmulation, excludePatterns, 1, resticWrapper)
 	case `restore`:
 		logic.Restore()
 	case ``:
