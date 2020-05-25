@@ -1,9 +1,5 @@
 package resticwrapper
 
-import (
-	"log"
-)
-
 type ResticWrapper struct {
 	s3Endpoint     string
 	s3Bucket       string
@@ -12,11 +8,11 @@ type ResticWrapper struct {
 	resticPassword string
 }
 
-func check(err error, msg string) {
-	if err != nil {
-		log.Fatalln(msg + "\r\n" + err.Error())
-	}
-}
+// func check(err error, msg string) {
+// 	if err != nil {
+// 		log.Fatalln(msg + "\r\n" + err.Error())
+// 	}
+// }
 
 func NewResticWrapper(s3Endpoint, s3Bucket, accKey, secKey, resticPassword string) *ResticWrapper {
 	return &ResticWrapper{
@@ -28,6 +24,8 @@ func NewResticWrapper(s3Endpoint, s3Bucket, accKey, secKey, resticPassword strin
 	}
 }
 
-func (t *ResticWrapper) Close() {
-	check(t.Docker.Close(), `Cannot close docker connection`)
+func (t *ResticWrapper) Init() {
+}
+
+func (t *ResticWrapper) Backup() {
 }
