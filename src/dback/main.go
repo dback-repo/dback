@@ -18,7 +18,7 @@ func main() {
 
 	switch cliRequest.Command {
 	case `backup`:
-		logic.Backup(dockerWrapper, isEmulation, excludePatterns)
+		logic.Backup(dockerWrapper, isEmulation, excludePatterns, 1)
 	case `restore`:
 		logic.Restore()
 	case ``:
