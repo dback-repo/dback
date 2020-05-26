@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"sync"
+
+	"github.com/docker/docker/api/types"
 )
 
 func check(err error, msg string) {
@@ -14,19 +16,25 @@ func check(err error, msg string) {
 	}
 }
 
-func Backup(dockerWrapper *dockerwrapper.DockerWrapper, isEmulation dockerwrapper.EmulateFlag,
-	excludePatterns []dockerwrapper.ExcludePattern, threadsCount int, resticWrapper *resticwrapper.ResticWrapper) {
-	log.Println(`Backup started`)
-
+func getContainersForBackup(dockerWrapper *dockerwrapper.DockerWrapper) []types.Container {
 	containers := dockerWrapper.GetAllContainers()
 	containers = dockerWrapper.SelectRunningContainers(containers)
 	containers = dockerWrapper.SelectNotTemporaryContainers(containers)
 
+	return containers
+}
+
+func Backup(dockerWrapper *dockerwrapper.DockerWrapper, isEmulation dockerwrapper.EmulateFlag,
+	excludePatterns []dockerwrapper.ExcludePattern, threadsCount int, resticWrapper *resticwrapper.ResticWrapper) {
+	check(os.MkdirAll(`/tmp`, 0664), `cannot create /tmp folder`)
+
+	log.Println(`Backup started`)
+
+	containers := getContainersForBackup(dockerWrapper)
 	mounts := dockerWrapper.GetMountsOfContainers(containers)
 
 	saveMountsToResticParallel(dockerWrapper, mounts, threadsCount, resticWrapper)
-
-	log.Println(mounts)
+	log.Println(`Backup finished for the mounts above`)
 }
 
 func saveMountsToResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, mounts []dockerwrapper.Mount,
@@ -46,7 +54,6 @@ func saveMountsToResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, moun
 
 	close(mountsCh)
 	wg.Wait()
-	log.Println(`backup finished`)
 }
 
 func saveMountsWorker(dockerWrapper *dockerwrapper.DockerWrapper, ch chan dockerwrapper.Mount,
@@ -58,7 +65,8 @@ func saveMountsWorker(dockerWrapper *dockerwrapper.DockerWrapper, ch chan docker
 			break
 		}
 
-		copyMountToLocal(dockerWrapper, mount, resticWrapper)
+		copyMountToLocal(dockerWrapper, mount)
+		resticWrapper.Save(`dback-data/mount-data`+mount.ContainerName+mount.MountDest, mount.ContainerName+mount.MountDest)
 	}
 	wg.Done()
 }
@@ -70,11 +78,11 @@ func pwd() string {
 	return res
 }
 
-func copyMountToLocal(dockerWrapper *dockerwrapper.DockerWrapper, mount dockerwrapper.Mount,
-	resticWrapper *resticwrapper.ResticWrapper) {
+func copyMountToLocal(dockerWrapper *dockerwrapper.DockerWrapper, mount dockerwrapper.Mount) {
 	dockerWrapper.CopyFolderToTar(mount.ContainerID, mount.MountDest,
 		`dback-data/tarballs`+mount.ContainerName+mount.MountDest)
 	check(os.MkdirAll(`dback-data/mount-data`+mount.ContainerName+mount.MountDest, 0664), `cannot make folder`)
 	dockerWrapper.CopyTarToFloder(`dback-data/tarballs`+mount.ContainerName+mount.MountDest+`/tar.tar`,
 		dockerWrapper.GetMyselfContainerID(), pwd()+`dback-data/mount-data`+mount.ContainerName+mount.MountDest)
+	log.Println(mount.ContainerName + mount.MountDest)
 }

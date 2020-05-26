@@ -88,7 +88,6 @@ func (t *DockerWrapper) CopyFolderToTar(containerID, folderDestination, tarDesti
 	defer outFile.Close()
 
 	_, err = io.Copy(outFile, reader)
-	log.Println(`****`, outFile.Name())
 	check(err, `cannot copy io flow`)
 }
 
@@ -106,7 +105,6 @@ func (t *DockerWrapper) CopyTarToFloder(tarDestination, containerID, folderDesti
 
 	defer tar.Close()
 
-	log.Println(`&&&`, folderDestination)
 	check(t.Docker.CopyToContainer(context.Background(), containerID,
 		folderDestination, tar,
 		types.CopyToContainerOptions{AllowOverwriteDirWithFile: true, CopyUIDGID: false}), `cannot copy to container`)
