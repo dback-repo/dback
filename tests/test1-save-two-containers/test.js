@@ -1,7 +1,6 @@
 const mv = require('fs').renameSync
 var fs  = require('fs');
-//const t.cmd = require('child_process').execSync
-const spw = require('child_process').spawnSync
+const cmd = require('child_process').execSync
 const r = process.env.REPO
 const cd = process.cwd()
 const Path = require('path');
@@ -49,7 +48,7 @@ const checkNoSub = function(str, substr){
 
 
 clearTmp()
-try {t.cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4 dback-test-1.5 dback-test-1.6',{stdio: 'ignore'})}catch{}
+try {cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4 dback-test-1.5 dback-test-1.6',{stdio: 'ignore'})}catch{}
 initVolumeWithFile('dback-test-1.2-volume','data/file1.txt')
 initVolumeWithFile('dback-test-1.4-volume','data/file1.txt')
 
@@ -63,7 +62,7 @@ t.cmd('docker run --rm -d --name dback-test-1.4 -v dback-test-1.4-volume:/mount-
 t.cmd('docker run --restart always -d --name dback-test-1.5 -v '+cd+'/data/mount-dir:/mount-dir nginx:1.17.8-alpine') 					//ignored by --exclude-mount pattern
 t.cmd('docker run -d --name dback-test-1.6 -v '+cd+'/data/mount-dir:/mount-dir -v dback-test-1.2-volume:/mount-vol nginx:1.17.8-alpine')  //ignored due restart-policy==none
 
-var out = t.cmd('docker run -t -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-data dback backup').toString()
+var out = t.cmd('docker run -t -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-data dback backup -e "^/(drone.*|dback-test-1.5.*)$" --s3-endpoint='+process.env.S3_ENDPOINT+' -b='+process.env.S3_BUCKET+' -a='+process.env.ACC_KEY+' -s='+process.env.SEC_KEY+' -p=sdf').toString()
 // checkSub(out,'Backup started')
 // checkSub(out,'exclude: /dback-test-1.4      Reason: temporary container (--rm)')
 // checkSub(out,'exclude: /dback-test-1.5/mount-dir      Reason: --exclude-mount parameter')

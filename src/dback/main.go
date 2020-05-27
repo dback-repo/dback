@@ -12,16 +12,19 @@ import (
 
 func main() {
 	cliRequest := cli.ParseCLI()
-	isEmulation, excludePatterns := cli.VerifyAndCast(cliRequest)
+	// log.Println(cliRequest)
+	// return
+	isEmulation, excludePatterns, threads, s3Endpoint, s3Bucket, s3AccKey, s3SecKey,
+		resticPassword := cli.VerifyAndCast(cliRequest)
 
 	dockerWrapper := &dockerwrapper.DockerWrapper{Docker: dockerbuilder.NewDockerClient()}
 	defer dockerWrapper.Close()
 
-	resticWrapper := resticwrapper.NewResticWrapper(``, ``, ``, ``, ``)
+	resticWrapper := resticwrapper.NewResticWrapper(s3Endpoint, s3Bucket, s3AccKey, s3SecKey, resticPassword)
 
 	switch cliRequest.Command {
 	case `backup`:
-		logic.Backup(dockerWrapper, isEmulation, excludePatterns, 1, resticWrapper)
+		logic.Backup(dockerWrapper, isEmulation, excludePatterns, threads, resticWrapper)
 	case `restore`:
 		logic.Restore()
 	case ``:

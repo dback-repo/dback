@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/docker/docker/api/types"
 )
@@ -33,12 +34,18 @@ func Backup(dockerWrapper *dockerwrapper.DockerWrapper, isEmulation dockerwrappe
 	containers := getContainersForBackup(dockerWrapper)
 	mounts := dockerWrapper.GetMountsOfContainers(containers)
 
+	startBackupMoment := time.Now()
+
 	saveMountsToResticParallel(dockerWrapper, mounts, threadsCount, resticWrapper)
-	log.Println(`Backup finished for the mounts above`)
+	log.Println(`Backup finished for the mounts above, in ` + time.Since(startBackupMoment).String())
 }
 
 func saveMountsToResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, mounts []dockerwrapper.Mount,
 	threadsCount int, resticWrapper *resticwrapper.ResticWrapper) {
+	if threadsCount == 0 {
+		threadsCount = len(mounts)
+	}
+
 	wg := sync.WaitGroup{}
 	wg.Add(threadsCount)
 
