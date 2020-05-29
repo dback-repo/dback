@@ -1,6 +1,7 @@
 package dockerwrapper
 
 import (
+	"regexp"
 	"strconv"
 )
 
@@ -8,7 +9,12 @@ type ExcludePattern string
 
 func NewExcludePatterns(strArr []string) []ExcludePattern {
 	res := []ExcludePattern{}
-	//toodo: check the each string is valid regExp
+
+	for _, curPattern := range strArr {
+		_, err := regexp.Compile(curPattern)
+		check(err, `exlude pattern must be valid regular expression, but the pattern `+
+			curPattern+` is invalid`)
+	}
 
 	return res
 }

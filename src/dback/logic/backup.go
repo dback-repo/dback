@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"dback/utils/cli"
 	"dback/utils/dockerwrapper"
 	"dback/utils/resticwrapper"
 	"log"
@@ -25,27 +26,41 @@ func getContainersForBackup(dockerWrapper *dockerwrapper.DockerWrapper) []types.
 	return containers
 }
 
-func Backup(dockerWrapper *dockerwrapper.DockerWrapper, isEmulation dockerwrapper.EmulateFlag,
-	excludePatterns []dockerwrapper.ExcludePattern, threadsCount int, resticWrapper *resticwrapper.ResticWrapper) {
-	check(os.MkdirAll(`/tmp`, 0664), `cannot create /tmp folder`)
+//0    => mountCount
+//9999 => mountCount
+func correctThreadsCount(threadsCount int, mountCount int) int {
+	if threadsCount == 0 || threadsCount > mountCount {
+		threadsCount = mountCount
+	}
 
-	log.Println(`Backup started`)
+	return threadsCount
+}
+
+func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
+	resticWrapper *resticwrapper.ResticWrapper) {
+	check(os.MkdirAll(`/tmp`, 0664), `cannot create /tmp folder`)
 
 	containers := getContainersForBackup(dockerWrapper)
 	mounts := dockerWrapper.GetMountsOfContainers(containers)
 
+	if len(mounts) == 0 {
+		log.Println(`No mounts for backup. Check "matcher" and "exclude" command line flags.
+Run "dback backup --help" for more info`)
+		return
+	}
+
+	dbackOpts.ThreadsCount = correctThreadsCount(dbackOpts.ThreadsCount, len(mounts))
+
+	log.Println(`Backup started`)
+
 	startBackupMoment := time.Now()
 
-	saveMountsToResticParallel(dockerWrapper, mounts, threadsCount, resticWrapper)
+	saveMountsToResticParallel(dockerWrapper, mounts, dbackOpts.ThreadsCount, resticWrapper)
 	log.Println(`Backup finished for the mounts above, in ` + time.Since(startBackupMoment).String())
 }
 
 func saveMountsToResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, mounts []dockerwrapper.Mount,
 	threadsCount int, resticWrapper *resticwrapper.ResticWrapper) {
-	if threadsCount == 0 {
-		threadsCount = len(mounts)
-	}
-
 	wg := sync.WaitGroup{}
 	wg.Add(threadsCount)
 

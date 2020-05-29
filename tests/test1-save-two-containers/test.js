@@ -62,7 +62,7 @@ t.cmd('docker run --rm -d --name dback-test-1.4 -v dback-test-1.4-volume:/mount-
 t.cmd('docker run --restart always -d --name dback-test-1.5 -v '+cd+'/data/mount-dir:/mount-dir nginx:1.17.8-alpine') 					//ignored by --exclude-mount pattern
 t.cmd('docker run -d --name dback-test-1.6 -v '+cd+'/data/mount-dir:/mount-dir -v dback-test-1.2-volume:/mount-vol nginx:1.17.8-alpine')  //ignored due restart-policy==none
 
-var out = t.cmd('docker run -t -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-data dback backup -e "^/(drone.*|dback-test-1.5.*)$" --s3-endpoint='+process.env.S3_ENDPOINT+' -b='+process.env.S3_BUCKET+' -a='+process.env.ACC_KEY+' -s='+process.env.SEC_KEY+' -p=sdf').toString()
+var out = t.cmd('docker run --rm -t -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-data dback backup -e -x "^/(drone.*|dback-test-1.5.*)$" --s3-endpoint='+process.env.S3_ENDPOINT+' -b='+process.env.S3_BUCKET+' -a='+process.env.ACC_KEY+' -s='+process.env.SEC_KEY+' -p=sdf').toString()
 // checkSub(out,'Backup started')
 // checkSub(out,'exclude: /dback-test-1.4      Reason: temporary container (--rm)')
 // checkSub(out,'exclude: /dback-test-1.5/mount-dir      Reason: --exclude-mount parameter')

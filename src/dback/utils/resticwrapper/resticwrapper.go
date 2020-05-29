@@ -6,12 +6,20 @@ import (
 	"os/exec"
 )
 
+type CreationOpts struct {
+	S3Endpoint string
+	S3Bucket   string
+	AccKey     string
+	SecKey     string
+	ResticPass string
+}
+
 type ResticWrapper struct {
-	s3Endpoint     string
-	s3Bucket       string
-	accKey         string
-	secKey         string
-	resticPassword string
+	s3Endpoint string
+	s3Bucket   string
+	accKey     string
+	secKey     string
+	resticPass string
 }
 
 func check(err error, msg string) {
@@ -20,13 +28,13 @@ func check(err error, msg string) {
 	}
 }
 
-func NewResticWrapper(s3Endpoint, s3Bucket, accKey, secKey, resticPassword string) *ResticWrapper {
+func NewResticWrapper(opts CreationOpts) *ResticWrapper {
 	return &ResticWrapper{
-		s3Endpoint:     s3Endpoint,
-		s3Bucket:       s3Bucket,
-		accKey:         accKey,
-		secKey:         secKey,
-		resticPassword: resticPassword,
+		s3Endpoint: opts.S3Endpoint,
+		s3Bucket:   opts.S3Bucket,
+		accKey:     opts.AccKey,
+		secKey:     opts.SecKey,
+		resticPass: opts.ResticPass,
 	}
 }
 
@@ -37,7 +45,7 @@ func (t *ResticWrapper) cmd(localFolder, s3Folder, command string, arg ...string
 	cmd.Dir = localFolder
 
 	cmd.Env = append(os.Environ(),
-		`RESTIC_PASSWORD=`+t.resticPassword,
+		`RESTIC_PASSWORD=`+t.resticPass,
 		`RESTIC_REPOSITORY=s3:http://`+t.s3Endpoint+`/`+t.s3Bucket+s3Folder,
 		`AWS_ACCESS_KEY_ID=`+t.accKey,
 		`AWS_SECRET_ACCESS_KEY=`+t.secKey)
