@@ -46,7 +46,7 @@ func (t *ResticWrapper) cmd(localFolder, s3Folder, command string, arg ...string
 
 	cmd.Env = append(os.Environ(),
 		`RESTIC_PASSWORD=`+t.resticPass,
-		`RESTIC_REPOSITORY=s3:http://`+t.s3Endpoint+`/`+t.s3Bucket+s3Folder,
+		`RESTIC_REPOSITORY=s3:`+t.s3Endpoint+`/`+t.s3Bucket+s3Folder,
 		`AWS_ACCESS_KEY_ID=`+t.accKey,
 		`AWS_SECRET_ACCESS_KEY=`+t.secKey)
 	output, err := cmd.CombinedOutput()

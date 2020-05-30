@@ -50,7 +50,8 @@ func VerifyAndCast(req cli.Request) (DbackOpts, resticwrapper.CreationOpts) {
 		if resticOpts.S3Endpoint == `` || resticOpts.S3Bucket == `` || resticOpts.AccKey ==
 			`` || resticOpts.SecKey == `` || resticOpts.ResticPass == `` {
 			log.Fatalln(`All of restic options (s3-endpoint, s3-bucket, s3-acc-key, s3-sec-key, restic-pass)
-are required, when emulation flag is not defined. Define restic options, or use emulation "-e" flag`)
+are required, when emulation flag is not defined. Define restic options, or use emulation "-e" flag.
+Run "dback backup --help", for details`)
 		}
 	}
 
