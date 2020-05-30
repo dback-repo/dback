@@ -36,16 +36,23 @@ func correctThreadsCount(threadsCount int, mountCount int) int {
 	return threadsCount
 }
 
-func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
-	resticWrapper *resticwrapper.ResticWrapper) {
-	check(os.MkdirAll(`/tmp`, 0664), `cannot create /tmp folder`)
-
-	containers := getContainersForBackup(dockerWrapper)
-	mounts := dockerWrapper.GetMountsOfContainers(containers)
-
+func isMountsEmpty(mounts []dockerwrapper.Mount) bool {
 	if len(mounts) == 0 {
 		log.Println(`No mounts for backup. Check "matcher" and "exclude" command line flags.
 Run "dback backup --help" for more info`)
+
+		return true
+	}
+
+	return false
+}
+
+func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
+	resticWrapper *resticwrapper.ResticWrapper) {
+	containers := getContainersForBackup(dockerWrapper)
+	mounts := dockerWrapper.GetMountsOfContainers(containers)
+
+	if isMountsEmpty(mounts) {
 		return
 	}
 
@@ -88,23 +95,17 @@ func saveMountsWorker(dockerWrapper *dockerwrapper.DockerWrapper, ch chan docker
 		}
 
 		copyMountToLocal(dockerWrapper, mount)
-		resticWrapper.Save(`dback-data/mount-data`+mount.ContainerName+mount.MountDest, mount.ContainerName+mount.MountDest)
+		resticWrapper.Save(`/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest,
+			mount.ContainerName+mount.MountDest)
 	}
 	wg.Done()
 }
 
-func pwd() string {
-	res, err := os.Getwd()
-	check(err, `cannot get current directory`)
-
-	return res
-}
-
 func copyMountToLocal(dockerWrapper *dockerwrapper.DockerWrapper, mount dockerwrapper.Mount) {
 	dockerWrapper.CopyFolderToTar(mount.ContainerID, mount.MountDest,
-		`dback-data/tarballs`+mount.ContainerName+mount.MountDest)
-	check(os.MkdirAll(`dback-data/mount-data`+mount.ContainerName+mount.MountDest, 0664), `cannot make folder`)
-	dockerWrapper.CopyTarToFloder(`dback-data/tarballs`+mount.ContainerName+mount.MountDest+`/tar.tar`,
-		dockerWrapper.GetMyselfContainerID(), pwd()+`dback-data/mount-data`+mount.ContainerName+mount.MountDest)
+		`/tmp/dback-data/tarballs`+mount.ContainerName+mount.MountDest)
+	check(os.MkdirAll(`/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest, 0664), `cannot make folder`)
+	dockerWrapper.CopyTarToFloder(`/tmp/dback-data/tarballs`+mount.ContainerName+mount.MountDest+`/tar.tar`,
+		dockerWrapper.GetMyselfContainerID(), `/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest)
 	log.Println(mount.ContainerName + mount.MountDest)
 }
