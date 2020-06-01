@@ -37,33 +37,6 @@ func (t *DockerWrapper) GetAllContainers() []types.Container {
 	return containers
 }
 
-func (t *DockerWrapper) SelectRunningContainers(containers []types.Container) []types.Container {
-	res := []types.Container{}
-
-	for _, curContainer := range containers {
-		if curContainer.State == `running` {
-			res = append(res, curContainer)
-		}
-	}
-
-	return res
-}
-
-func (t *DockerWrapper) SelectNotTemporaryContainers(containers []types.Container) []types.Container {
-	res := []types.Container{}
-
-	for _, curContainer := range containers {
-		inspect, err := t.Docker.ContainerInspect(context.Background(), curContainer.ID)
-		check(err, `Cannot inspect container `+curContainer.ID)
-
-		if !inspect.HostConfig.AutoRemove {
-			res = append(res, curContainer)
-		}
-	}
-
-	return res
-}
-
 func (t *DockerWrapper) GetMountsOfContainers(containers []types.Container) []Mount {
 	res := []Mount{}
 

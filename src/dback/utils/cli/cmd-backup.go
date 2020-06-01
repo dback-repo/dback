@@ -45,7 +45,7 @@ Options:
 		},
 	}
 	c.PersistentFlags().StringSliceP(`matcher`, `m`,
-		[]string{`HostConfig.AutoRemove:false,HostConfig.RestartPolicy:always`},
+		[]string{`"RestartPolicy":{"Name":"always"`, `"AutoRemove":false`},
 		`backup containers with all defined preferences`)
 	c.PersistentFlags().StringSliceP(`exclude`, `x`, []string{}, `exclude mounts by RegEx pattern`)
 	c.PersistentFlags().StringP(`threads`, `t`, `0`, `run mounts backup concurrently. 0 - create a thread for each mount`)

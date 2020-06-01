@@ -11,6 +11,7 @@ import (
 
 type DbackOpts struct {
 	IsEmulation     dockerwrapper.EmulateFlag
+	Matchers        []string
 	ExcludePatterns []dockerwrapper.ExcludePattern
 	ThreadsCount    int
 }
@@ -34,6 +35,7 @@ func VerifyAndCast(req cli.Request) (DbackOpts, resticwrapper.CreationOpts) {
 
 	dbackOpts := DbackOpts{
 		IsEmulation:     dockerwrapper.NewEmulateFlag(f[`emulate`][0]),
+		Matchers:        f[`matcher`],
 		ExcludePatterns: dockerwrapper.NewExcludePatterns(f[`exclude`]),
 		ThreadsCount:    verifyThreads(f[`threads`][0]),
 	}

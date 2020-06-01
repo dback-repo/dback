@@ -48,13 +48,13 @@ const checkNoSub = function(str, substr){
 
 
 clearTmp()
-try {cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4 dback-test-1.5 dback-test-1.6 dback-test-minio',{stdio: 'ignore'})}catch{}
+try {cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4 dback-test-1.5 dback-test-1.6 dback-test-1.minio',{stdio: 'ignore'})}catch{}
 initVolumeWithFile('dback-test-1.2-volume','data/file1.txt')
 initVolumeWithFile('dback-test-1.4-volume','data/file1.txt')
 
 //minio server (s3 compatible) for saving test mounts
-t.cmd('docker run --rm -d --name dback-test-minio -p 127.0.0.1:2157:9000 -e MINIO_ACCESS_KEY=dback_test -e MINIO_SECRET_KEY=3b464c70cf691ef6512ed51b2a minio/minio:RELEASE.2020-03-25T07-03-04Z server /data')
-t.cmd('docker run --rm -d --link dback-test-minio:minio --entrypoint=sh minio/mc:RELEASE.2020-05-28T23-43-36Z -c "mc config host add minio http://minio:9000 dback_test 3b464c70cf691ef6512ed51b2a && mc mb minio/dback-test"')
+t.cmd('docker run --rm -d --name dback-test-1.minio -p 127.0.0.1:2157:9000 -e MINIO_ACCESS_KEY=dback_test -e MINIO_SECRET_KEY=3b464c70cf691ef6512ed51b2a minio/minio:RELEASE.2020-03-25T07-03-04Z server /data')
+t.cmd('docker run --rm -d --link dback-test-1.minio:minio --entrypoint=sh minio/mc:RELEASE.2020-05-28T23-43-36Z -c "mc config host add minio http://minio:9000 dback_test 3b464c70cf691ef6512ed51b2a && mc mb minio/dback-test"')
 
 //this containers should be saved
 t.cmd('docker run --restart always -d --name dback-test-1.1 -v '+cd+'/data/mount-dir:/mount-dir nginx:1.17.8-alpine')
@@ -66,7 +66,7 @@ t.cmd('docker run --rm -d --name dback-test-1.4 -v dback-test-1.4-volume:/mount-
 t.cmd('docker run --restart always -d --name dback-test-1.5 -v '+cd+'/data/mount-dir:/mount-dir nginx:1.17.8-alpine') 					//ignored by --exclude-mount pattern
 t.cmd('docker run -d --name dback-test-1.6 -v '+cd+'/data/mount-dir:/mount-dir -v dback-test-1.2-volume:/mount-vol nginx:1.17.8-alpine')  //ignored due restart-policy==none
 
-var out = t.cmd('docker run --rm -t --link dback-test-minio:minio -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-data dback backup -e -x "^/(drone.*|dback-test-1.5.*)$" --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
+var out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-data dback backup -e -x "^/(drone.*|dback-test-1.5.*)$" --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
 // checkSub(out,'Backup started')
 // checkSub(out,'exclude: /dback-test-1.4      Reason: temporary container (--rm)')
 // checkSub(out,'exclude: /dback-test-1.5/mount-dir      Reason: --exclude-mount parameter')
@@ -85,4 +85,4 @@ console.log(out)
 // out = t.t.cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-snapshots dback restore '+process.env.S3_ENDPOINT+' '+process.env.S3_BUCKET+' '+process.env.ACC_KEY+' '+process.env.SEC_KEY).toString()
 // console.log(out)
 
-t.cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4 dback-test-1.5 dback-test-1.6 dback-test-minio')
+t.cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4 dback-test-1.5 dback-test-1.6 dback-test-1.minio')

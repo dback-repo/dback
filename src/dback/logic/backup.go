@@ -1,11 +1,13 @@
 package logic
 
 import (
+	"context"
 	"dback/utils/cli"
 	"dback/utils/dockerwrapper"
 	"dback/utils/resticwrapper"
 	"log"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -18,12 +20,35 @@ func check(err error, msg string) {
 	}
 }
 
-func getContainersForBackup(dockerWrapper *dockerwrapper.DockerWrapper) []types.Container {
-	containers := dockerWrapper.GetAllContainers()
-	containers = dockerWrapper.SelectRunningContainers(containers)
-	containers = dockerWrapper.SelectNotTemporaryContainers(containers)
+func getContainersForBackup(dockerWrapper *dockerwrapper.DockerWrapper, matchers []string) []types.Container {
+	allContainers := dockerWrapper.GetAllContainers()
+	matchContainers := []types.Container{}
 
-	return containers
+	for _, curContainer := range allContainers {
+		if len(curContainer.Mounts) == 0 {
+			log.Println(`Ignore container: `, curContainer.Names[0], ` cause: container has no mounts`)
+		}
+
+		_, cntBytes, _ := dockerWrapper.Docker.ContainerInspectWithRaw(context.Background(), curContainer.ID, true)
+
+		match := true // container will be selected for backup, if inspect json contains all matchers substrings
+
+		for _, curMatcher := range matchers {
+			if !strings.Contains(string(cntBytes), curMatcher) {
+				log.Println(`Ignore container: `, curContainer.Names[0], ` cause: matcher not found`, curMatcher)
+
+				match = false
+
+				break
+			}
+		}
+
+		if match {
+			matchContainers = append(matchContainers, curContainer)
+		}
+	}
+
+	return matchContainers
 }
 
 //0    => mountCount
@@ -49,7 +74,7 @@ Run "dback backup --help" for more info`)
 
 func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
 	resticWrapper *resticwrapper.ResticWrapper) {
-	containers := getContainersForBackup(dockerWrapper)
+	containers := getContainersForBackup(dockerWrapper, dbackOpts.Matchers)
 	mounts := dockerWrapper.GetMountsOfContainers(containers)
 
 	if isMountsEmpty(mounts) {
@@ -95,6 +120,7 @@ func saveMountsWorker(dockerWrapper *dockerwrapper.DockerWrapper, ch chan docker
 		}
 
 		copyMountToLocal(dockerWrapper, mount)
+		log.Println(`Save to restic:`, mount.ContainerName+mount.MountDest)
 		resticWrapper.Save(`/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest,
 			mount.ContainerName+mount.MountDest)
 	}
@@ -107,5 +133,4 @@ func copyMountToLocal(dockerWrapper *dockerwrapper.DockerWrapper, mount dockerwr
 	check(os.MkdirAll(`/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest, 0664), `cannot make folder`)
 	dockerWrapper.CopyTarToFloder(`/tmp/dback-data/tarballs`+mount.ContainerName+mount.MountDest+`/tar.tar`,
 		dockerWrapper.GetMyselfContainerID(), `/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest)
-	log.Println(mount.ContainerName + mount.MountDest)
 }
