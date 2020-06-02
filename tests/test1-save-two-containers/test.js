@@ -29,7 +29,7 @@ const clearTmp = function(){
 }
 
 const initVolumeWithFile = function(volumeName, filename){
-	try {t.cmd('docker volume rm ' + volumeName)}catch{}
+	//try {cmd('docker volume rm ' + volumeName)}catch{}
 	t.cmd('docker volume create ' + volumeName)
 	moveFileToDockerVolume(filename, volumeName)
 }
@@ -89,3 +89,4 @@ console.log(out)
 // console.log(out)
 
 t.cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4 dback-test-1.5 dback-test-1.6 dback-test-1.minio')
+t.cmd('docker volume rm dback-test-1.2-volume dback-test-1.2.1-volume dback-test-1.4-volume')
