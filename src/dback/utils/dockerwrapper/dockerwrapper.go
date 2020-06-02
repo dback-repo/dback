@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"regexp"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -47,6 +48,32 @@ func (t *DockerWrapper) GetMountsOfContainers(containers []types.Container) []Mo
 	}
 
 	return res
+}
+
+func (t *DockerWrapper) ExcludeMountsByPattern(mounts []Mount, excludePatterns []ExcludePattern) []Mount {
+	mountsForBackup := []Mount{}
+
+	for _, curMount := range mounts {
+		backupMount := true
+
+		for _, curExcludePattern := range excludePatterns {
+			r, err := regexp.Compile(string(curExcludePattern))
+			check(err, `Exclude pattern is not correct regexp`+string(curExcludePattern))
+
+			if r.MatchString(curMount.ContainerName + curMount.MountDest) {
+				backupMount = false
+
+				log.Println(`Exclude mount: ` + curMount.ContainerName + curMount.MountDest +
+					`      cause: --exclude-mount ` + string(curExcludePattern))
+			}
+		}
+
+		if backupMount {
+			mountsForBackup = append(mountsForBackup, curMount)
+		}
+	}
+
+	return mountsForBackup
 }
 
 func (t *DockerWrapper) CopyFolderToTar(containerID, folderDestination, tarDestination string) {

@@ -7,7 +7,6 @@ import (
 	"dback/utils/resticwrapper"
 	"log"
 	"os"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -19,33 +18,6 @@ func check(err error, msg string) {
 	if err != nil {
 		log.Fatalln(msg, "\r\n", err.Error())
 	}
-}
-
-func selectMountsForBackup(mounts []dockerwrapper.Mount,
-	excludePatterns []dockerwrapper.ExcludePattern) []dockerwrapper.Mount {
-	mountsForBackup := []dockerwrapper.Mount{}
-
-	for _, curMount := range mounts {
-		backupMount := true
-
-		for _, curExcludePattern := range excludePatterns {
-			r, err := regexp.Compile(string(curExcludePattern))
-			check(err, `Exclude pattern is not correct regexp`+string(curExcludePattern))
-
-			if r.MatchString(curMount.ContainerName + curMount.MountDest) {
-				backupMount = false
-
-				log.Println(`Exclude mount: ` + curMount.ContainerName + curMount.MountDest +
-					`      cause: --exclude-mount ` + string(curExcludePattern))
-			}
-		}
-
-		if backupMount {
-			mountsForBackup = append(mountsForBackup, curMount)
-		}
-	}
-
-	return mountsForBackup
 }
 
 func getContainersForBackup(dockerWrapper *dockerwrapper.DockerWrapper, matchers []string) []types.Container {
@@ -90,23 +62,25 @@ func correctThreadsCount(threadsCount int, mountCount int) int {
 }
 
 func isMountsEmpty(mounts []dockerwrapper.Mount) bool {
-	if len(mounts) == 0 {
-		log.Println(`No mounts for backup. Check "matcher" and "exclude" command line flags.
-Run "dback backup --help" for more info`)
+	return len(mounts) == 0
+}
 
-		return true
-	}
+func getMountsForBackup(dockerWrapper *dockerwrapper.DockerWrapper, matchers []string,
+	excludePatterns []dockerwrapper.ExcludePattern) []dockerwrapper.Mount {
+	containers := getContainersForBackup(dockerWrapper, matchers)
+	mounts := dockerWrapper.GetMountsOfContainers(containers)
+	mounts = dockerWrapper.ExcludeMountsByPattern(mounts, excludePatterns)
 
-	return false
+	return mounts
 }
 
 func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
 	resticWrapper *resticwrapper.ResticWrapper) {
-	containers := getContainersForBackup(dockerWrapper, dbackOpts.Matchers)
-	mounts := dockerWrapper.GetMountsOfContainers(containers)
-	mounts = selectMountsForBackup(mounts, dbackOpts.ExcludePatterns)
+	mounts := getMountsForBackup(dockerWrapper, dbackOpts.Matchers, dbackOpts.ExcludePatterns)
 
 	if isMountsEmpty(mounts) {
+		log.Println(`No mounts for backup. Check "matcher" and "exclude" command line flags.
+Run "dback backup --help" for more info`)
 		return
 	}
 
