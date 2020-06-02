@@ -58,7 +58,7 @@ t.cmd('docker run --rm -d --link dback-test-1.minio:minio --entrypoint=sh minio/
 
 //this containers should be saved
 t.cmd('docker run --restart always -d --name dback-test-1.1 -v '+cd+'/data/mount-dir:/mount-dir nginx:1.17.8-alpine')
-t.cmd('docker run --restart on-failure -d --name dback-test-1.2 -v '+cd+'/data/mount-dir:/mount-dir -v dback-test-1.2-volume:/mount-vol nginx:1.17.8-alpine')
+t.cmd('docker run --restart always -d --name dback-test-1.2 -v '+cd+'/data/mount-dir:/mount-dir -v dback-test-1.2-volume:/mount-vol nginx:1.17.8-alpine')
 
 //this containers should be ignored
 t.cmd('docker run --restart always -d --name dback-test-1.3 nginx:1.17.8-alpine') 														//container has no mounts
