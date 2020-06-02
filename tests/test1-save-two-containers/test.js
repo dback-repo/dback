@@ -50,6 +50,7 @@ const checkNoSub = function(str, substr){
 clearTmp()
 try {cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4 dback-test-1.5 dback-test-1.6 dback-test-1.minio',{stdio: 'ignore'})}catch{}
 initVolumeWithFile('dback-test-1.2-volume','data/file1.txt')
+initVolumeWithFile('dback-test-1.2.1-volume','data/file1.txt')
 initVolumeWithFile('dback-test-1.4-volume','data/file1.txt')
 
 //minio server (s3 compatible) for saving test mounts
@@ -58,7 +59,7 @@ t.cmd('docker run --rm -d --link dback-test-1.minio:minio --entrypoint=sh minio/
 
 //this containers should be saved
 t.cmd('docker run --restart always -d --name dback-test-1.1 -v '+cd+'/data/mount-dir:/mount-dir nginx:1.17.8-alpine')
-t.cmd('docker run --restart always -d --name dback-test-1.2 -v '+cd+'/data/mount-dir:/mount-dir -v dback-test-1.2-volume:/mount-vol nginx:1.17.8-alpine')
+t.cmd('docker run --restart always -d --name dback-test-1.2 -v '+cd+'/data/mount-dir:/mount-dir -v dback-test-1.2-volume:/mount-vol -v dback-test-1.2.1-volume:/mount-vol-for-exclude nginx:1.17.8-alpine')
 
 //this containers should be ignored
 t.cmd('docker run --restart always -d --name dback-test-1.3 nginx:1.17.8-alpine') 														//container has no mounts
@@ -66,16 +67,18 @@ t.cmd('docker run --rm -d --name dback-test-1.4 -v dback-test-1.4-volume:/mount-
 t.cmd('docker run --restart always -d --name dback-test-1.5 -v '+cd+'/data/mount-dir:/mount-dir nginx:1.17.8-alpine') 					//ignored by --exclude-mount pattern
 t.cmd('docker run -d --name dback-test-1.6 -v '+cd+'/data/mount-dir:/mount-dir -v dback-test-1.2-volume:/mount-vol nginx:1.17.8-alpine')  //ignored due restart-policy==none
 
-var out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-data dback backup -e -x "^/(drone.*|dback-test-1.5.*)$" --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
-// checkSub(out,'Backup started')
-// checkSub(out,'exclude: /dback-test-1.4      Reason: temporary container (--rm)')
-// checkSub(out,'exclude: /dback-test-1.5/mount-dir      Reason: --exclude-mount parameter')
-// checkSub(out,'exclude: /dback-test-1.6      Reason: container restart policy==none')
-// checkSub(out,'make backup: /dback-test-1.2/mount-vol')
-// checkSub(out,'make backup: /dback-test-1.1/mount-dir')
-// checkSub(out,'make backup: /dback-test-1.2/mount-dir')
-// checkSub(out,'exclude: /dback-test-1.5/mount-dir')
-// checkSub(out,'Backup has finished for the mounts above')
+var out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-data dback backup -e -x "^/(drone.*|dback-test-1.5.*)$" -x "for-exclude$" --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
+checkSub(out,'Ignore container:  /dback-test-1.6  cause: matcher not found "RestartPolicy":{"Name":"always"')
+checkSub(out,'Ignore container:  /dback-test-1.4  cause: matcher not found "RestartPolicy":{"Name":"always"')
+checkSub(out,'Ignore container:  /dback-test-1.3  cause: container has no mounts')
+checkSub(out,'Ignore container:  /dback-test-1.minio  cause: matcher not found "RestartPolicy":{"Name":"always"')
+checkSub(out,'Exclude mount: /dback-test-1.5/mount-dir      cause: --exclude-mount ^/(drone.*|dback-test-1.5.*)$')
+checkSub(out,'Exclude mount: /dback-test-1.2/mount-vol-for-exclude      cause: --exclude-mount for-exclude$')
+checkSub(out,'Backup started')
+checkSub(out,'Save to restic: /dback-test-1.1/mount-dir')
+checkSub(out,'Save to restic: /dback-test-1.2/mount-dir')
+checkSub(out,'Save to restic: /dback-test-1.2/mount-vol')
+checkSub(out,'Backup finished for the mounts above, in ')
 
 console.log(out)
 

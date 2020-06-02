@@ -14,6 +14,8 @@ func NewExcludePatterns(strArr []string) []ExcludePattern {
 		_, err := regexp.Compile(curPattern)
 		check(err, `exlude pattern must be valid regular expression, but the pattern `+
 			curPattern+` is invalid`)
+
+		res = append(res, ExcludePattern(curPattern))
 	}
 
 	return res

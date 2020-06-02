@@ -7,6 +7,7 @@ import (
 	"dback/utils/resticwrapper"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -18,6 +19,33 @@ func check(err error, msg string) {
 	if err != nil {
 		log.Fatalln(msg, "\r\n", err.Error())
 	}
+}
+
+func selectMountsForBackup(mounts []dockerwrapper.Mount,
+	excludePatterns []dockerwrapper.ExcludePattern) []dockerwrapper.Mount {
+	mountsForBackup := []dockerwrapper.Mount{}
+
+	for _, curMount := range mounts {
+		backupMount := true
+
+		for _, curExcludePattern := range excludePatterns {
+			r, err := regexp.Compile(string(curExcludePattern))
+			check(err, `Exclude pattern is not correct regexp`+string(curExcludePattern))
+
+			if r.MatchString(curMount.ContainerName + curMount.MountDest) {
+				backupMount = false
+
+				log.Println(`Exclude mount: ` + curMount.ContainerName + curMount.MountDest +
+					`      cause: --exclude-mount ` + string(curExcludePattern))
+			}
+		}
+
+		if backupMount {
+			mountsForBackup = append(mountsForBackup, curMount)
+		}
+	}
+
+	return mountsForBackup
 }
 
 func getContainersForBackup(dockerWrapper *dockerwrapper.DockerWrapper, matchers []string) []types.Container {
@@ -76,6 +104,7 @@ func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
 	resticWrapper *resticwrapper.ResticWrapper) {
 	containers := getContainersForBackup(dockerWrapper, dbackOpts.Matchers)
 	mounts := dockerWrapper.GetMountsOfContainers(containers)
+	mounts = selectMountsForBackup(mounts, dbackOpts.ExcludePatterns)
 
 	if isMountsEmpty(mounts) {
 		return
@@ -83,6 +112,7 @@ func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
 
 	dbackOpts.ThreadsCount = correctThreadsCount(dbackOpts.ThreadsCount, len(mounts))
 
+	log.Println()
 	log.Println(`Backup started`)
 
 	startBackupMoment := time.Now()
