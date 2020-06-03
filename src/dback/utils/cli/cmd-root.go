@@ -16,7 +16,7 @@ Dback runs restic under the hood.`,
 	}
 	emulate := false
 	c.PersistentFlags().BoolVarP(&emulate, "emulate", "e", false,
-		"emulate an action, and show list of items will be affected")
+		"emulate an action (backup or restore), and show list of items will be affected")
 
 	return &c
 }

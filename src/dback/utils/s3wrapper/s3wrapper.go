@@ -2,6 +2,7 @@ package s3wrapper
 
 import (
 	"log"
+	"strings"
 
 	"github.com/minio/minio-go"
 )
@@ -35,12 +36,20 @@ func NewS3Wrapper(opts CreationOpts) *S3Wrapper {
 	}
 }
 
+//http://host.com -> host.com
+func cutProtocol(s3Endpoint string) string {
+	s3Endpoint = strings.TrimPrefix(s3Endpoint, `http://`)
+	s3Endpoint = strings.TrimPrefix(s3Endpoint, `https://`)
+
+	return s3Endpoint
+}
+
 //list of saved containers == list of folders in /dback-snapshots
 func (t *S3Wrapper) GetBackupsContainerList() []string {
 	useSSL := false
 
 	// Initialize minio client object.
-	minioClient, err := minio.New(t.s3Endpoint, t.accKey, t.secKey, useSSL)
+	minioClient, err := minio.New(cutProtocol(t.s3Endpoint), t.accKey, t.secKey, useSSL)
 	check(err, `cannot start minio client`)
 
 	doneCh := make(chan struct{})

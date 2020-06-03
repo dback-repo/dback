@@ -25,6 +25,7 @@ func VerifyAndCast(req cli.Request) (DbackOpts, resticwrapper.CreationOpts) {
 		if len(req.Args) > 0 {
 			log.Fatalln(`"dback backup" accepts no arguments`)
 		}
+	case `restore`:
 	case ``:
 		//no command provided. Parse CLI is already printed an advice
 		os.Exit(1)
@@ -54,9 +55,9 @@ func VerifyAndCast(req cli.Request) (DbackOpts, resticwrapper.CreationOpts) {
 		if resticOpts.S3Opts.S3Endpoint == `` || resticOpts.S3Opts.S3Bucket == `` ||
 			resticOpts.S3Opts.AccKey == `` || resticOpts.S3Opts.SecKey == `` ||
 			resticOpts.ResticPass == `` {
-			log.Fatalln(`All of restic options (s3-endpoint, s3-bucket, s3-acc-key, s3-sec-key, restic-pass)
-are required, when emulation flag is not defined. Define restic options, or use emulation "-e" flag.
-Run "dback backup --help", for details`)
+			log.Fatalln(`All of dback options (s3-endpoint, s3-bucket, s3-acc-key, s3-sec-key, restic-pass)
+are required, when emulation flag is not defined. Define dback options, or use emulation "-e" flag.
+Run "dback ` + req.Command + ` --help", for details`)
 		}
 	}
 
