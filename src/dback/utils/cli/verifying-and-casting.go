@@ -4,6 +4,7 @@ import (
 	"cli"
 	"dback/utils/dockerwrapper"
 	"dback/utils/resticwrapper"
+	"dback/utils/s3wrapper"
 	"log"
 	"os"
 	"strconv"
@@ -24,7 +25,6 @@ func VerifyAndCast(req cli.Request) (DbackOpts, resticwrapper.CreationOpts) {
 		if len(req.Args) > 0 {
 			log.Fatalln(`"dback backup" accepts no arguments`)
 		}
-	case `restore`:
 	case ``:
 		//no command provided. Parse CLI is already printed an advice
 		os.Exit(1)
@@ -41,16 +41,19 @@ func VerifyAndCast(req cli.Request) (DbackOpts, resticwrapper.CreationOpts) {
 	}
 
 	resticOpts := resticwrapper.CreationOpts{
-		S3Endpoint: f[`s3-endpoint`][0],
-		S3Bucket:   f[`s3-bucket`][0],
-		AccKey:     f[`s3-acc-key`][0],
-		SecKey:     f[`s3-sec-key`][0],
+		S3Opts: s3wrapper.CreationOpts{
+			S3Endpoint: f[`s3-endpoint`][0],
+			S3Bucket:   f[`s3-bucket`][0],
+			AccKey:     f[`s3-acc-key`][0],
+			SecKey:     f[`s3-sec-key`][0],
+		},
 		ResticPass: f[`restic-pass`][0],
 	}
 
 	if !dbackOpts.IsEmulation {
-		if resticOpts.S3Endpoint == `` || resticOpts.S3Bucket == `` || resticOpts.AccKey ==
-			`` || resticOpts.SecKey == `` || resticOpts.ResticPass == `` {
+		if resticOpts.S3Opts.S3Endpoint == `` || resticOpts.S3Opts.S3Bucket == `` ||
+			resticOpts.S3Opts.AccKey == `` || resticOpts.S3Opts.SecKey == `` ||
+			resticOpts.ResticPass == `` {
 			log.Fatalln(`All of restic options (s3-endpoint, s3-bucket, s3-acc-key, s3-sec-key, restic-pass)
 are required, when emulation flag is not defined. Define restic options, or use emulation "-e" flag.
 Run "dback backup --help", for details`)

@@ -1,16 +1,14 @@
 package resticwrapper
 
 import (
+	"dback/utils/s3wrapper"
 	"log"
 	"os"
 	"os/exec"
 )
 
 type CreationOpts struct {
-	S3Endpoint string
-	S3Bucket   string
-	AccKey     string
-	SecKey     string
+	S3Opts     s3wrapper.CreationOpts
 	ResticPass string
 }
 
@@ -30,10 +28,10 @@ func check(err error, msg string) {
 
 func NewResticWrapper(opts CreationOpts) *ResticWrapper {
 	return &ResticWrapper{
-		s3Endpoint: opts.S3Endpoint,
-		s3Bucket:   opts.S3Bucket,
-		accKey:     opts.AccKey,
-		secKey:     opts.SecKey,
+		s3Endpoint: opts.S3Opts.S3Endpoint,
+		s3Bucket:   opts.S3Opts.S3Bucket,
+		accKey:     opts.S3Opts.AccKey,
+		secKey:     opts.S3Opts.SecKey,
 		resticPass: opts.ResticPass,
 	}
 }

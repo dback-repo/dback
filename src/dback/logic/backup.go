@@ -74,6 +74,12 @@ func getMountsForBackup(dockerWrapper *dockerwrapper.DockerWrapper, matchers []s
 	return mounts
 }
 
+func printMounts(mounts []dockerwrapper.Mount) {
+	for _, curMount := range mounts {
+		log.Println(curMount.ContainerName + curMount.MountDest)
+	}
+}
+
 func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
 	resticWrapper *resticwrapper.ResticWrapper) {
 	mounts := getMountsForBackup(dockerWrapper, dbackOpts.Matchers, dbackOpts.ExcludePatterns)
@@ -81,6 +87,15 @@ func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
 	if isMountsEmpty(mounts) {
 		log.Println(`No mounts for backup. Check "matcher" and "exclude" command line flags.
 Run "dback backup --help" for more info`)
+		return
+	}
+
+	if dbackOpts.IsEmulation {
+		log.Println()
+		log.Println(`Emulation started`)
+		printMounts(mounts)
+		log.Println(`The mounts above will be backup, if run dback without --emulate (-e) flag`)
+
 		return
 	}
 
