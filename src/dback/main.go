@@ -23,7 +23,7 @@ func main() {
 	case `backup`:
 		logic.Backup(dockerWrapper, dbackOpts, resticWrapper)
 	case `restore`:
-		logic.Restore(s3Wrapper)
+		logic.Restore(s3Wrapper, resticWrapper)
 		// s3Wrapper := NewS3Wrapper
 		// logic.List(NewS3Wrapper(resticOpts.S3Opts))
 	case `list`:

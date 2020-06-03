@@ -2,6 +2,7 @@ package resticwrapper
 
 import (
 	"dback/utils/s3wrapper"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -62,8 +63,23 @@ func (t *ResticWrapper) backup(localFolder, s3Folder, tag string) (string, error
 }
 
 func (t *ResticWrapper) Save(localFolder, s3Folder, tag string) {
-	if t.init(localFolder, s3Folder, tag) != nil { //if repo is already created, or other error
-		out, err := t.backup(localFolder, s3Folder, tag)
-		check(err, out)
+	err := t.init(localFolder, s3Folder, tag)
+	if err == nil { //ignore error (it just because repo already exist), and prevent linter alerting.
+		fmt.Print(``)
 	}
+
+	out, err := t.backup(localFolder, s3Folder, tag)
+
+	check(err, out)
+}
+
+func (t *ResticWrapper) ListSnapshots(s3Folder string) []string {
+	res := []string{}
+
+	log.Println(t.cmd(`.`, s3Folder, `snapshots`))
+	// if t.init(localFolder, s3Folder, tag) != nil { //if repo is already created, or other error
+	// 	out, err := t.backup(localFolder, s3Folder, tag)
+	// 	check(err, out)
+	// }
+	return res
 }
