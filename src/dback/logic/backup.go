@@ -80,6 +80,10 @@ func printMounts(mounts []dockerwrapper.Mount) {
 	}
 }
 
+func newTimestamp(moment time.Time) string {
+	return moment.Format(`02.01.2006.15-04-05`)
+}
+
 func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
 	resticWrapper *resticwrapper.ResticWrapper) {
 	mounts := getMountsForBackup(dockerWrapper, dbackOpts.Matchers, dbackOpts.ExcludePatterns)
@@ -101,24 +105,25 @@ Run "dback backup --help" for more info`)
 
 	dbackOpts.ThreadsCount = correctThreadsCount(dbackOpts.ThreadsCount, len(mounts))
 
-	log.Println()
-	log.Println(`Backup started`)
-
 	startBackupMoment := time.Now()
+	timestamp := newTimestamp(startBackupMoment)
 
-	saveMountsToResticParallel(dockerWrapper, mounts, dbackOpts.ThreadsCount, resticWrapper)
+	log.Println()
+	log.Println(`Backup started. Timestamp = ` + timestamp)
+
+	saveMountsToResticParallel(dockerWrapper, mounts, dbackOpts.ThreadsCount, resticWrapper, timestamp)
 	log.Println(`Backup finished for the mounts above, in ` + time.Since(startBackupMoment).String())
 }
 
 func saveMountsToResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, mounts []dockerwrapper.Mount,
-	threadsCount int, resticWrapper *resticwrapper.ResticWrapper) {
+	threadsCount int, resticWrapper *resticwrapper.ResticWrapper, timestamp string) {
 	wg := sync.WaitGroup{}
 	wg.Add(threadsCount)
 
 	mountsCh := make(chan dockerwrapper.Mount)
 
 	for i := 0; i < threadsCount; i++ {
-		go saveMountsWorker(dockerWrapper, mountsCh, &wg, resticWrapper)
+		go saveMountsWorker(dockerWrapper, mountsCh, &wg, resticWrapper, timestamp)
 	}
 
 	for _, curMount := range mounts {
@@ -130,7 +135,7 @@ func saveMountsToResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, moun
 }
 
 func saveMountsWorker(dockerWrapper *dockerwrapper.DockerWrapper, ch chan dockerwrapper.Mount,
-	wg *sync.WaitGroup, resticWrapper *resticwrapper.ResticWrapper) {
+	wg *sync.WaitGroup, resticWrapper *resticwrapper.ResticWrapper, timestamp string) {
 	for {
 		mount, more := <-ch
 
@@ -141,7 +146,7 @@ func saveMountsWorker(dockerWrapper *dockerwrapper.DockerWrapper, ch chan docker
 		copyMountToLocal(dockerWrapper, mount)
 		log.Println(`Save to restic:`, mount.ContainerName+mount.MountDest)
 		resticWrapper.Save(`/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest,
-			mount.ContainerName+mount.MountDest)
+			mount.ContainerName+mount.MountDest, timestamp)
 	}
 	wg.Done()
 }

@@ -52,18 +52,18 @@ func (t *ResticWrapper) cmd(localFolder, s3Folder, command string, arg ...string
 	return string(output), err
 }
 
-func (t *ResticWrapper) init(localFolder, s3Folder string) error {
+func (t *ResticWrapper) init(localFolder, s3Folder, tag string) error {
 	_, err := t.cmd(localFolder, s3Folder, `init`)
 	return err
 }
 
-func (t *ResticWrapper) backup(localFolder, s3Folder string) (string, error) {
-	return t.cmd(localFolder, s3Folder, `backup`, `/`+localFolder)
+func (t *ResticWrapper) backup(localFolder, s3Folder, tag string) (string, error) {
+	return t.cmd(localFolder, s3Folder, `backup`, `--tag`, tag, `/`+localFolder)
 }
 
-func (t *ResticWrapper) Save(localFolder, s3Folder string) {
-	if t.init(localFolder, s3Folder) != nil { //if repo is already created, or other error
-		out, err := t.backup(localFolder, s3Folder)
+func (t *ResticWrapper) Save(localFolder, s3Folder, tag string) {
+	if t.init(localFolder, s3Folder, tag) != nil { //if repo is already created, or other error
+		out, err := t.backup(localFolder, s3Folder, tag)
 		check(err, out)
 	}
 }
