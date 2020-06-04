@@ -84,22 +84,29 @@ func newTimestamp(moment time.Time) string {
 	return moment.Format(`02.01.2006.15-04-05`)
 }
 
+func backupEmulation(mounts []dockerwrapper.Mount) {
+	log.Println()
+	log.Println(`Emulation started`)
+	printMounts(mounts)
+	log.Println(`The mounts above will be backup, if run dback without --emulate (-e) flag`)
+}
+
+func printEmptyMountsMess() {
+	log.Println(`No mounts for backup. Check "matcher" and "exclude" command line flags.
+Run "dback backup --help" for more info`)
+}
+
 func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
 	resticWrapper *resticwrapper.ResticWrapper) {
 	mounts := getMountsForBackup(dockerWrapper, dbackOpts.Matchers, dbackOpts.ExcludePatterns)
 
 	if isMountsEmpty(mounts) {
-		log.Println(`No mounts for backup. Check "matcher" and "exclude" command line flags.
-Run "dback backup --help" for more info`)
+		printEmptyMountsMess()
 		return
 	}
 
 	if dbackOpts.IsEmulation {
-		log.Println()
-		log.Println(`Emulation started`)
-		printMounts(mounts)
-		log.Println(`The mounts above will be backup, if run dback without --emulate (-e) flag`)
-
+		backupEmulation(mounts)
 		return
 	}
 
@@ -110,7 +117,6 @@ Run "dback backup --help" for more info`)
 
 	log.Println()
 	log.Println(`Backup started. Timestamp = ` + timestamp)
-
 	saveMountsToResticParallel(dockerWrapper, mounts, dbackOpts.ThreadsCount, resticWrapper, timestamp)
 	log.Println(`Backup finished for the mounts above, in ` + time.Since(startBackupMoment).String())
 }
