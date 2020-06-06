@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 type CreationOpts struct {
@@ -73,13 +74,57 @@ func (t *ResticWrapper) Save(localFolder, s3Folder, tag string) {
 	check(err, out)
 }
 
-func (t *ResticWrapper) ListSnapshots(s3Folder string) []string {
-	res := []string{}
+type Snapshot struct {
+	ID  string
+	Tag string
+}
 
-	log.Println(t.cmd(`.`, s3Folder, `snapshots`))
-	// if t.init(localFolder, s3Folder, tag) != nil { //if repo is already created, or other error
-	// 	out, err := t.backup(localFolder, s3Folder, tag)
-	// 	check(err, out)
-	// }
+const snapshotDataLinesOffset = 2
+
+// created new cache in /.cache/restic
+// ID        Time                 Host          Tags                 Paths
+// ---------------------------------------------------------------------------------------------------------------------
+// 2d54ed46  2020-06-06 09:54:31  63a47ed66844  06.06.2020.09-54-27  /tmp/dback-data/mount-data/dback-test-1.1/mount-dir
+// 322fe600  2020-06-06 09:54:36  9d54964fad7b  06.06.2020.09-54-35  /tmp/dback-data/mount-data/dback-test-1.1/mount-dir
+// ---------------------------------------------------------------------------------------------------------------------
+func parseSnapshots(out string) []Snapshot {
+	res := []Snapshot{}
+	lines := strings.Split(out, "\n")
+
+	headerLine := -1
+
+	for idx, curLine := range lines {
+		if strings.HasPrefix(curLine, `ID`) {
+			headerLine = idx
+			break
+		}
+	}
+
+	if headerLine == -1 {
+		return res
+	}
+
+	tagsOffset := strings.Index(lines[headerLine], `Tags`)
+
+	for i := headerLine + snapshotDataLinesOffset; i <= len(lines); i++ {
+		if string(lines[i][0]) == `-` {
+			break
+		}
+
+		tag := lines[i][tagsOffset:]        //06.06.2020.09-54-35  /t...
+		tag = tag[:strings.Index(tag, ` `)] //06.06.2020.09-54-35
+		snapshot := Snapshot{}
+		snapshot.ID = lines[i][:strings.Index(lines[i], ` `)]
+		snapshot.Tag = tag
+		res = append(res, snapshot)
+	}
+
 	return res
+}
+
+func (t *ResticWrapper) ListSnapshots(s3Folder string) []Snapshot {
+	out, err := t.cmd(`.`, s3Folder, `snapshots`)
+	check(err, `cannot execute "restic snapshots"`)
+
+	return parseSnapshots(out)
 }

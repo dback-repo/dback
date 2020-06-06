@@ -16,10 +16,10 @@ type S3Wrapper struct {
 }
 
 type S3Mount struct {
-	ContainerName    string
-	Dest             string
-	Snapshots        []string
-	SelectedSnapshot string
+	ContainerName      string
+	Dest               string
+	Snapshots          []resticwrapper.Snapshot
+	SelectedSnapshotID string
 }
 
 func check(err error, msg string) {
@@ -44,11 +44,7 @@ func cutProtocol(s3Endpoint string) string {
 	return s3Endpoint
 }
 
-// func getAllS3Mounts() {
-
-// }
-
-func (t *S3Wrapper) GetMountsForRestore(cliparams []string,
+func (t *S3Wrapper) GetMounts(
 	resticWrapper *resticwrapper.ResticWrapper, dockerw *dockerwrapper.DockerWrapper) []S3Mount {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
@@ -65,15 +61,19 @@ func (t *S3Wrapper) GetMountsForRestore(cliparams []string,
 
 	res := []S3Mount{}
 
+	//get restic repos
 	for _, curResticFolder := range resticFolders {
 		mount := S3Mount{}
-		mount.ContainerName = curResticFolder[:strings.Index(curResticFolder, `/`)]
+		mount.ContainerName = `/` + curResticFolder[:strings.Index(curResticFolder, `/`)]
 		mount.Dest = curResticFolder[strings.Index(curResticFolder, `/`):]
 		mount.Dest = strings.TrimSuffix(mount.Dest, `/config`)
 		res = append(res, mount)
 	}
 
-	log.Println(resticFolders)
+	//get snapshots for each restic repo
+	for mountIdx, curMount := range res {
+		res[mountIdx].Snapshots = resticWrapper.ListSnapshots(curMount.ContainerName + curMount.Dest)
+	}
 
 	return res
 }

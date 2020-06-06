@@ -9,8 +9,10 @@ import (
 
 func getS3MountsForRestore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
 	dockerw *dockerwrapper.DockerWrapper, restoreParams []string) []s3wrapper.S3Mount {
-	s3Mounts := s3.GetMountsForRestore(restoreParams, resticw, dockerw)
+	s3Mounts := s3.GetMounts(resticw, dockerw)
 	res := s3Mounts
+
+	log.Println(`restoreParams`, restoreParams)
 
 	return res
 }
