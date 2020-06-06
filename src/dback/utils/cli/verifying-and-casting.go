@@ -4,7 +4,7 @@ import (
 	"cli"
 	"dback/utils/dockerwrapper"
 	"dback/utils/resticwrapper"
-	"dback/utils/s3wrapper"
+	"dback/utils/s3opts"
 	"log"
 	"os"
 	"strconv"
@@ -42,7 +42,7 @@ func VerifyAndCast(req cli.Request) (DbackOpts, resticwrapper.CreationOpts) {
 	}
 
 	resticOpts := resticwrapper.CreationOpts{
-		S3Opts: s3wrapper.CreationOpts{
+		S3Opts: s3opts.CreationOpts{
 			S3Endpoint: f[`s3-endpoint`][0],
 			S3Bucket:   f[`s3-bucket`][0],
 			AccKey:     f[`s3-acc-key`][0],

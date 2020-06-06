@@ -1,7 +1,7 @@
 package resticwrapper
 
 import (
-	"dback/utils/s3wrapper"
+	"dback/utils/s3opts"
 	"fmt"
 	"log"
 	"os"
@@ -9,7 +9,7 @@ import (
 )
 
 type CreationOpts struct {
-	S3Opts     s3wrapper.CreationOpts
+	S3Opts     s3opts.CreationOpts
 	ResticPass string
 }
 

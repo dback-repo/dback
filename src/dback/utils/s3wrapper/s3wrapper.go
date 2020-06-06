@@ -1,24 +1,25 @@
 package s3wrapper
 
 import (
+	"dback/utils/dockerwrapper"
+	"dback/utils/resticwrapper"
+	"dback/utils/s3opts"
 	"log"
 	"strings"
 
 	"github.com/minio/minio-go"
 )
 
-type CreationOpts struct {
-	S3Endpoint string
-	S3Bucket   string
-	AccKey     string
-	SecKey     string
+type S3Wrapper struct {
+	minio    *minio.Client
+	s3Bucket string
 }
 
-type S3Wrapper struct {
-	s3Endpoint string
-	s3Bucket   string
-	accKey     string
-	secKey     string
+type S3Mount struct {
+	ContainerName    string
+	Dest             string
+	Snapshots        []string
+	SelectedSnapshot string
 }
 
 func check(err error, msg string) {
@@ -27,13 +28,12 @@ func check(err error, msg string) {
 	}
 }
 
-func NewS3Wrapper(opts CreationOpts) *S3Wrapper {
-	return &S3Wrapper{
-		s3Endpoint: opts.S3Endpoint,
-		s3Bucket:   opts.S3Bucket,
-		accKey:     opts.AccKey,
-		secKey:     opts.SecKey,
-	}
+func NewS3Wrapper(opts s3opts.CreationOpts) *S3Wrapper {
+	useSSL := false
+	minioClient, err := minio.New(cutProtocol(opts.S3Endpoint), opts.AccKey, opts.SecKey, useSSL)
+	check(err, `cannot start minio client`)
+
+	return &S3Wrapper{minioClient, opts.S3Bucket}
 }
 
 //http://host.com -> host.com
@@ -44,23 +44,36 @@ func cutProtocol(s3Endpoint string) string {
 	return s3Endpoint
 }
 
-//list of saved containers == list of folders in /dback-snapshots
-func (t *S3Wrapper) GetBackupsContainerList() []string {
-	useSSL := false
+// func getAllS3Mounts() {
 
-	// Initialize minio client object.
-	minioClient, err := minio.New(cutProtocol(t.s3Endpoint), t.accKey, t.secKey, useSSL)
-	check(err, `cannot start minio client`)
+// }
 
+func (t *S3Wrapper) GetMountsForRestore(cliparams []string,
+	resticWrapper *resticwrapper.ResticWrapper, dockerw *dockerwrapper.DockerWrapper) []S3Mount {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
 
-	containers := []string{}
+	resticFolders := []string{}
 
-	for object := range minioClient.ListObjects(t.s3Bucket, ``, false, doneCh) {
+	for object := range t.minio.ListObjects(t.s3Bucket, ``, true, doneCh) {
 		check(object.Err, `cannot list object at bucket `+t.s3Bucket)
-		containers = append(containers, object.Key[:len(object.Key)-1])
+
+		if strings.Contains(object.Key, `/config`) {
+			resticFolders = append(resticFolders, object.Key)
+		}
 	}
 
-	return containers
+	res := []S3Mount{}
+
+	for _, curResticFolder := range resticFolders {
+		mount := S3Mount{}
+		mount.ContainerName = curResticFolder[:strings.Index(curResticFolder, `/`)]
+		mount.Dest = curResticFolder[strings.Index(curResticFolder, `/`):]
+		mount.Dest = strings.TrimSuffix(mount.Dest, `/config`)
+		res = append(res, mount)
+	}
+
+	log.Println(resticFolders)
+
+	return res
 }

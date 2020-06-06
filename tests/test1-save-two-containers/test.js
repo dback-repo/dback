@@ -49,6 +49,7 @@ const checkNoSub = function(str, substr){
 
 clearTmp()
 try {cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4 dback-test-1.5 dback-test-1.6 dback-test-1.minio',{stdio: 'ignore'})}catch{}
+try {cmd('docker volume rm dback-test-1.2-volume dback-test-1.2.1-volume dback-test-1.4-volume',{stdio: 'ignore'})}catch{}
 initVolumeWithFile('dback-test-1.2-volume','data/file1.txt')
 initVolumeWithFile('dback-test-1.2.1-volume','data/file1.txt')
 initVolumeWithFile('dback-test-1.4-volume','data/file1.txt')
