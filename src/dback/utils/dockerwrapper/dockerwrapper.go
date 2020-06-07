@@ -109,3 +109,14 @@ func (t *DockerWrapper) CopyTarToFloder(tarDestination, containerID, folderDesti
 		folderDestination, tar,
 		types.CopyToContainerOptions{AllowOverwriteDirWithFile: true, CopyUIDGID: false}), `cannot copy to container`)
 }
+
+func (t *DockerWrapper) GetContainerIDByName(containerName string) string {
+	containers := t.GetAllContainers()
+	for _, curContainer := range containers {
+		if curContainer.Names[0] == containerName {
+			return curContainer.ID
+		}
+	}
+
+	return ``
+}

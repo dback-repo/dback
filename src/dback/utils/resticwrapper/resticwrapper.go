@@ -111,7 +111,7 @@ func parseSnapshots(out string) []Snapshot {
 			break
 		}
 
-		tag := lines[i][tagsOffset:]        //06.06.2020.09-54-35  /t...
+		tag := lines[i][tagsOffset:]        //06.06.2020.09-54-35  /tmp/d...
 		tag = tag[:strings.Index(tag, ` `)] //06.06.2020.09-54-35
 		snapshot := Snapshot{}
 		snapshot.ID = lines[i][:strings.Index(lines[i], ` `)]
@@ -127,4 +127,13 @@ func (t *ResticWrapper) ListSnapshots(s3Folder string) []Snapshot {
 	check(err, `cannot execute "restic snapshots"`)
 
 	return parseSnapshots(out)
+}
+
+func (t *ResticWrapper) restore(localFolder, s3Folder, snapshotID string) (string, error) {
+	return t.cmd(localFolder, s3Folder, `restore`, snapshotID, `--target`, localFolder)
+}
+
+func (t *ResticWrapper) Load(localFolder, s3Folder, snapshotID string) {
+	out, err := t.restore(localFolder, s3Folder, snapshotID)
+	check(err, out)
 }
