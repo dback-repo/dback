@@ -162,7 +162,19 @@ func saveMountsWorker(dockerWrapper *dockerwrapper.DockerWrapper, ch chan docker
 func copyMountToLocal(dockerWrapper *dockerwrapper.DockerWrapper, mount dockerwrapper.Mount) {
 	dockerWrapper.CopyFolderToTar(mount.ContainerID, mount.MountDest,
 		`/tmp/dback-data/tarballs`+mount.ContainerName+mount.MountDest)
-	check(os.MkdirAll(`/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest, 0664), `cannot make folder`)
+	check(os.MkdirAll(destParent(`/tmp/dback-data/mount-data`+mount.ContainerName+
+		mount.MountDest), 0664), `cannot make folder`)
 	dockerWrapper.CopyTarToFloder(`/tmp/dback-data/tarballs`+mount.ContainerName+mount.MountDest+`/tar.tar`,
-		dockerWrapper.GetMyselfContainerID(), `/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest)
+		dockerWrapper.GetMyselfContainerID(), destParent(`/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest))
+}
+
+func destParent(dest string) string {
+	lastSlashIdx := strings.LastIndex(dest, `/`)
+	destParent := dest[:lastSlashIdx] //      "/var/www/lynx" -> "/var/www"        "/opt" -> "/"
+
+	if destParent == `` {
+		destParent = `/`
+	}
+
+	return destParent
 }

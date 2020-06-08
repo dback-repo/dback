@@ -41,7 +41,7 @@ func isS3MountsEmpty(mounts []s3wrapper.S3Mount) bool {
 }
 
 func printS3MountsList(mounts []s3wrapper.S3Mount) {
-	log.Println(mounts)
+	log.Println(`Mounts list:`, mounts)
 }
 
 func Restore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
