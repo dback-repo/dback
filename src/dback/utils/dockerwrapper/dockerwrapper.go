@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -43,7 +44,7 @@ func (t *DockerWrapper) GetMountsOfContainers(containers []types.Container) []Mo
 
 	for _, curContainer := range containers {
 		for _, curMount := range curContainer.Mounts {
-			res = append(res, Mount{curContainer.ID, curContainer.Names[0], curMount.Destination})
+			res = append(res, Mount{curContainer.ID, t.GetCorrectContainerName(curContainer.Names), curMount.Destination})
 		}
 	}
 
@@ -113,8 +114,18 @@ func (t *DockerWrapper) CopyTarToFloder(tarDestination, containerID, folderDesti
 func (t *DockerWrapper) GetContainerIDByName(containerName string) string {
 	containers := t.GetAllContainers()
 	for _, curContainer := range containers {
-		if curContainer.Names[0] == containerName {
+		if t.GetCorrectContainerName(curContainer.Names) == containerName {
 			return curContainer.ID
+		}
+	}
+
+	return ``
+}
+
+func (t *DockerWrapper) GetCorrectContainerName(names []string) string {
+	for _, curName := range names {
+		if strings.Count(curName, `/`) == 1 {
+			return curName
 		}
 	}
 

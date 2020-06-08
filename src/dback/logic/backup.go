@@ -26,7 +26,8 @@ func getContainersForBackup(dockerWrapper *dockerwrapper.DockerWrapper, matchers
 
 	for _, curContainer := range allContainers {
 		if len(curContainer.Mounts) == 0 {
-			log.Println(`Ignore container: `, curContainer.Names[0], ` cause: container has no mounts`)
+			log.Println(`Ignore container: `, dockerWrapper.GetCorrectContainerName(curContainer.Names),
+				` cause: container has no mounts`)
 		}
 
 		_, cntBytes, _ := dockerWrapper.Docker.ContainerInspectWithRaw(context.Background(), curContainer.ID, true)
@@ -35,7 +36,8 @@ func getContainersForBackup(dockerWrapper *dockerwrapper.DockerWrapper, matchers
 
 		for _, curMatcher := range matchers {
 			if !strings.Contains(string(cntBytes), curMatcher) {
-				log.Println(`Ignore container: `, curContainer.Names[0], ` cause: matcher not found`, curMatcher)
+				log.Println(`Ignore container: `, dockerWrapper.GetCorrectContainerName(curContainer.Names),
+					` cause: matcher not found`, curMatcher)
 
 				match = false
 
