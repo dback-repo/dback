@@ -10,6 +10,7 @@ RUN cd /go/src/dback && go build -a -installsuffix cgo -ldflags="-s -w" && go bu
 FROM scratch as dev
 COPY --from=builder /go/src/dback/dback-dev /bin/dback
 COPY --from=builder /bin/restic /bin/restic
+VOLUME /tmp
 ENV DOCKER_API_VERSION 1.37
 ENTRYPOINT ["/bin/dback"]
 
@@ -20,5 +21,6 @@ RUN apk add upx=3.95-r2 && cd /go/src/dback && upx --brute dback
 FROM scratch as prod
 COPY --from=compressor /go/src/dback/dback /bin/dback
 COPY --from=builder /bin/restic /bin/restic
+VOLUME /tmp
 ENV DOCKER_API_VERSION 1.37
 ENTRYPOINT ["/bin/dback"]

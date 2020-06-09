@@ -24,10 +24,13 @@ type cliParser struct {
 	rootCmd cobra.Command
 }
 
-func newCliParser(reqest *Request) *cliParser {
+func NewCliParser(root *cobra.Command, commands ...*cobra.Command) *cliParser {
 	res := cliParser{}
-	res.rootCmd = *NewRootCommand()
-	res.rootCmd.AddCommand(NewBackupCommand(reqest), NewRestoreCommand(reqest))
+	res.rootCmd = *root
+
+	for _, curCommand := range commands {
+		res.rootCmd.AddCommand(curCommand)
+	}
 
 	return &res
 }
@@ -36,9 +39,9 @@ func (t *cliParser) Parse() {
 	check(t.rootCmd.Execute())
 }
 
-func ParseCLI() Request {
+func ParseCLI(root *cobra.Command, commands ...*cobra.Command) Request {
 	res := NewRequest()
-	newCliParser(&res).Parse()
+	NewCliParser(root, commands...).Parse()
 
 	return res
 }
