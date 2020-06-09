@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -25,6 +26,12 @@ type Mount struct {
 func check(err error, msg string) {
 	if err != nil {
 		log.Fatalln(msg + "\r\n" + err.Error())
+	}
+}
+
+func checkJustLog(err error, msg string) {
+	if err != nil {
+		log.Println(msg + "\r\n" + err.Error())
 	}
 }
 
@@ -130,4 +137,65 @@ func (t *DockerWrapper) GetCorrectContainerName(names []string) string {
 	}
 
 	return ``
+}
+
+func (t *DockerWrapper) GetContainerIDsOfMounts(mounts []Mount) []string {
+	res := []string{}
+
+	containersMap := make(map[string]string)
+
+	for _, curMount := range mounts {
+		containersMap[curMount.ContainerID] = curMount.ContainerID
+	}
+
+	for _, curContainerID := range containersMap {
+		res = append(res, curContainerID)
+	}
+
+	return res
+}
+
+func (t *DockerWrapper) StartContainersByIDs(ids *[]string, panicOnError bool) {
+	for _, curContainerID := range *ids {
+		err := t.Docker.ContainerStart(context.Background(), curContainerID, types.ContainerStartOptions{})
+
+		log.Println(`StartContainer:`, curContainerID)
+
+		if panicOnError {
+			check(err, `Cannot stop container: `+curContainerID)
+		} else {
+			checkJustLog(err, `Cannot stop container: `+curContainerID)
+		}
+	}
+}
+
+func (t *DockerWrapper) StopContainersByIDs(ids []string, panicOnError bool) {
+	timeout := time.Minute
+
+	for _, curContainerID := range ids {
+		err := t.Docker.ContainerStop(context.Background(), curContainerID, &timeout)
+
+		log.Println(`StopContainer:`, curContainerID)
+
+		if panicOnError {
+			check(err, `Cannot stop container: `+curContainerID)
+		} else {
+			checkJustLog(err, `Cannot stop container: `+curContainerID)
+		}
+	}
+}
+
+func (t *DockerWrapper) SelectRunningContainersByIDs(ids []string) []string {
+	res := []string{}
+
+	for _, curContainerID := range ids {
+		inspect, err := t.Docker.ContainerInspect(context.Background(), curContainerID)
+		check(err, `cannot inspect container`+curContainerID)
+
+		if inspect.State.Running {
+			res = append(res, curContainerID)
+		}
+	}
+
+	return res
 }

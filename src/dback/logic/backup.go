@@ -125,6 +125,12 @@ func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
 
 func saveMountsToResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, mounts []dockerwrapper.Mount,
 	threadsCount int, resticWrapper *resticwrapper.ResticWrapper, timestamp string) {
+	stoppedContainers := []string{}                                     //dockerWrapper.GetContainerIDsOfMounts(mounts)
+	defer dockerWrapper.StartContainersByIDs(&stoppedContainers, false) // for start containers even after panic
+
+	stoppedContainers = dockerWrapper.SelectRunningContainersByIDs(dockerWrapper.GetContainerIDsOfMounts(mounts))
+	dockerWrapper.StopContainersByIDs(stoppedContainers, true)
+
 	wg := sync.WaitGroup{}
 	wg.Add(threadsCount)
 
