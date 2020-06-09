@@ -27,7 +27,7 @@ steps:
     path: /var/run/docker.sock
   commands:
     - apk update
-    - apk add npm=12.15.0-r1
+    - apk add npm
     - npm i
     - npm run iterprod
 volumes:
