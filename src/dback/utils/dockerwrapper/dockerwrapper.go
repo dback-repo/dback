@@ -40,7 +40,7 @@ func (t *DockerWrapper) Close() {
 }
 
 func (t *DockerWrapper) GetAllContainers() []types.Container {
-	containers, err := t.Docker.ContainerList(context.Background(), types.ContainerListOptions{})
+	containers, err := t.Docker.ContainerList(context.Background(), types.ContainerListOptions{All: true})
 	check(err, `cannot get list of containers`)
 
 	return containers
@@ -159,8 +159,6 @@ func (t *DockerWrapper) StartContainersByIDs(ids *[]string, panicOnError bool) {
 	for _, curContainerID := range *ids {
 		err := t.Docker.ContainerStart(context.Background(), curContainerID, types.ContainerStartOptions{})
 
-		log.Println(`StartContainer:`, curContainerID)
-
 		if panicOnError {
 			check(err, `Cannot stop container: `+curContainerID)
 		} else {
@@ -174,8 +172,6 @@ func (t *DockerWrapper) StopContainersByIDs(ids []string, panicOnError bool) {
 
 	for _, curContainerID := range ids {
 		err := t.Docker.ContainerStop(context.Background(), curContainerID, &timeout)
-
-		log.Println(`StopContainer:`, curContainerID)
 
 		if panicOnError {
 			check(err, `Cannot stop container: `+curContainerID)
@@ -198,4 +194,14 @@ func (t *DockerWrapper) SelectRunningContainersByIDs(ids []string) []string {
 	}
 
 	return res
+}
+
+func (t *DockerWrapper) GetContainerNameByID(containerID string) string {
+	for _, curContainer := range t.GetAllContainers() {
+		if curContainer.ID == containerID {
+			return t.GetCorrectContainerName(curContainer.Names)
+		}
+	}
+
+	return ``
 }

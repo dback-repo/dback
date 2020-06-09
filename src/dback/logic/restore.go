@@ -66,6 +66,13 @@ func Restore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
 
 func loadMountsFromResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, s3Mounts []s3wrapper.S3Mount,
 	threadsCount int, resticWrapper *resticwrapper.ResticWrapper) {
+	stoppedContainers := []string{}
+	defer dockerWrapper.StartContainersByIDs(&stoppedContainers, false) // for start containers even after panic
+
+	stoppedContainers = dockerWrapper.SelectRunningContainersByIDs(s3wrapper.GetContainerIDsOfMounts(
+		s3Mounts, dockerWrapper))
+	dockerWrapper.StopContainersByIDs(stoppedContainers, true)
+
 	wg := sync.WaitGroup{}
 	wg.Add(threadsCount)
 

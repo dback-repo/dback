@@ -77,3 +77,19 @@ func (t *S3Wrapper) GetMounts(
 
 	return res
 }
+
+func GetContainerIDsOfMounts(mounts []S3Mount, dockerW *dockerwrapper.DockerWrapper) []string {
+	res := []string{}
+
+	containersMap := make(map[string]string)
+
+	for _, curMount := range mounts {
+		containersMap[curMount.ContainerName] = curMount.ContainerName
+	}
+
+	for _, curContainerName := range containersMap {
+		res = append(res, dockerW.GetContainerIDByName(curContainerName))
+	}
+
+	return res
+}
