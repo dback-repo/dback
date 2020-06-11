@@ -160,9 +160,12 @@ func saveMountsWorker(dockerWrapper *dockerwrapper.DockerWrapper, ch chan docker
 		}
 
 		copyMountToLocal(dockerWrapper, mount)
+
 		log.Println(`Save to restic:`, mount.ContainerName+mount.MountDest)
 		resticWrapper.Save(`/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest,
 			mount.ContainerName+mount.MountDest, timestamp)
+
+		go check(os.RemoveAll(`/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest), `cannot remove data dir`)
 	}
 	wg.Done()
 }
@@ -174,6 +177,8 @@ func copyMountToLocal(dockerWrapper *dockerwrapper.DockerWrapper, mount dockerwr
 		mount.MountDest), 0664), `cannot make folder`)
 	dockerWrapper.CopyTarToFloder(`/tmp/dback-data/tarballs`+mount.ContainerName+mount.MountDest+`/tar.tar`,
 		dockerWrapper.GetMyselfContainerID(), destParent(`/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest))
+
+	go check(os.RemoveAll(`/tmp/dback-data/tarballs`+mount.ContainerName+mount.MountDest+`/tar.tar`), `cannot remove tar`)
 }
 
 func destParent(dest string) string {
