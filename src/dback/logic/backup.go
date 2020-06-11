@@ -99,6 +99,17 @@ func printEmptyMountsMess() {
 Run "dback backup --help" for more info`)
 }
 
+//9.5213121s -> 9s
+func secondsFormat(t time.Duration) string {
+	tstr := t.String()
+
+	if t > time.Second {
+		tstr = tstr[:strings.Index(tstr, `.`)]
+	}
+
+	return tstr + `s`
+}
+
 func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
 	resticWrapper *resticwrapper.ResticWrapper, spacetracker *spacetracker.SpaceTracker) {
 	mounts := getMountsForBackup(dockerWrapper, dbackOpts.Matchers, dbackOpts.ExcludePatterns)
@@ -122,7 +133,7 @@ func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
 	log.Println(`Backup started. Timestamp = ` + timestamp)
 	saveMountsToResticParallel(dockerWrapper, mounts, dbackOpts.ThreadsCount, resticWrapper, timestamp)
 	spacetracker.PrintReport()
-	log.Println(`Backup finished for the mounts above, in ` + time.Since(startBackupMoment).String())
+	log.Println(`Backup finished for the mounts above, in ` + secondsFormat(time.Since(startBackupMoment)))
 }
 
 func saveMountsToResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, mounts []dockerwrapper.Mount,
