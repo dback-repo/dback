@@ -5,6 +5,7 @@ import (
 	"dback/utils/cli"
 	"dback/utils/dockerwrapper"
 	"dback/utils/resticwrapper"
+	"dback/utils/spacetracker"
 	"log"
 	"os"
 	"strings"
@@ -98,8 +99,19 @@ func printEmptyMountsMess() {
 Run "dback backup --help" for more info`)
 }
 
+//9.5213121s -> 9s
+func secondsFormat(t time.Duration) string {
+	tstr := t.String()
+
+	if t > time.Second {
+		tstr = tstr[:strings.Index(tstr, `.`)]
+	}
+
+	return tstr + `s`
+}
+
 func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
-	resticWrapper *resticwrapper.ResticWrapper) {
+	resticWrapper *resticwrapper.ResticWrapper, spacetracker *spacetracker.SpaceTracker) {
 	mounts := getMountsForBackup(dockerWrapper, dbackOpts.Matchers, dbackOpts.ExcludePatterns)
 
 	if isMountsEmpty(mounts) {
@@ -120,7 +132,8 @@ func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
 	log.Println()
 	log.Println(`Backup started. Timestamp = ` + timestamp)
 	saveMountsToResticParallel(dockerWrapper, mounts, dbackOpts.ThreadsCount, resticWrapper, timestamp)
-	log.Println(`Backup finished for the mounts above, in ` + time.Since(startBackupMoment).String())
+	spacetracker.PrintReport()
+	log.Println(`Backup finished for the mounts above, in ` + secondsFormat(time.Since(startBackupMoment)))
 }
 
 func saveMountsToResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, mounts []dockerwrapper.Mount,
@@ -158,9 +171,12 @@ func saveMountsWorker(dockerWrapper *dockerwrapper.DockerWrapper, ch chan docker
 		}
 
 		copyMountToLocal(dockerWrapper, mount)
+
 		log.Println(`Save to restic:`, mount.ContainerName+mount.MountDest)
 		resticWrapper.Save(`/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest,
 			mount.ContainerName+mount.MountDest, timestamp)
+
+		go check(os.RemoveAll(`/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest), `cannot remove data dir`)
 	}
 	wg.Done()
 }
@@ -172,6 +188,8 @@ func copyMountToLocal(dockerWrapper *dockerwrapper.DockerWrapper, mount dockerwr
 		mount.MountDest), 0664), `cannot make folder`)
 	dockerWrapper.CopyTarToFloder(`/tmp/dback-data/tarballs`+mount.ContainerName+mount.MountDest+`/tar.tar`,
 		dockerWrapper.GetMyselfContainerID(), destParent(`/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest))
+
+	go check(os.RemoveAll(`/tmp/dback-data/tarballs`+mount.ContainerName+mount.MountDest+`/tar.tar`), `cannot remove tar`)
 }
 
 func destParent(dest string) string {

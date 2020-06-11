@@ -7,6 +7,8 @@ import (
 	"dback/utils/dockerwrapper"
 	"dback/utils/resticwrapper"
 	"dback/utils/s3wrapper"
+	"dback/utils/spacetracker"
+	"time"
 )
 
 func main() {
@@ -19,11 +21,13 @@ func main() {
 	resticWrapper := resticwrapper.NewResticWrapper(resticOpts)
 	s3Wrapper := s3wrapper.NewS3Wrapper(resticOpts.S3Opts)
 
+	spaceTracker := spacetracker.NewSpaceTracker(time.Second)
+
 	switch cliRequest.Command {
 	case `backup`:
-		logic.Backup(dockerWrapper, dbackOpts, resticWrapper)
+		logic.Backup(dockerWrapper, dbackOpts, resticWrapper, spaceTracker)
 	case `restore`:
-		logic.Restore(s3Wrapper, resticWrapper, dockerWrapper, dbackOpts)
+		logic.Restore(s3Wrapper, resticWrapper, dockerWrapper, dbackOpts, spaceTracker)
 	case `list`:
 	}
 }

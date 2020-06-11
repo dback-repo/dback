@@ -5,6 +5,7 @@ import (
 	"dback/utils/dockerwrapper"
 	"dback/utils/resticwrapper"
 	"dback/utils/s3wrapper"
+	"dback/utils/spacetracker"
 	"log"
 	"os"
 	"sync"
@@ -45,7 +46,7 @@ func printS3MountsList(mounts []s3wrapper.S3Mount) {
 }
 
 func Restore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
-	dockerw *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts) {
+	dockerw *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts, spacetracker *spacetracker.SpaceTracker) {
 	s3MountsForRestore := getS3MountsForRestore(s3, resticw, dockerw, dbackOpts.Matchers)
 
 	if isS3MountsEmpty(s3MountsForRestore) {
@@ -62,6 +63,8 @@ func Restore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
 	dbackOpts.ThreadsCount = correctThreadsCount(dbackOpts.ThreadsCount, len(s3MountsForRestore))
 
 	loadMountsFromResticParallel(dockerw, s3MountsForRestore, dbackOpts.ThreadsCount, resticw)
+	spacetracker.PrintReport()
+	log.Println(`Restore finished for the mounts above`)
 }
 
 func loadMountsFromResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, s3Mounts []s3wrapper.S3Mount,
