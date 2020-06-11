@@ -8,7 +8,6 @@ import (
 	"dback/utils/resticwrapper"
 	"dback/utils/s3wrapper"
 	"dback/utils/spacetracker"
-	"log"
 	"time"
 )
 
@@ -26,13 +25,9 @@ func main() {
 
 	switch cliRequest.Command {
 	case `backup`:
-		logic.Backup(dockerWrapper, dbackOpts, resticWrapper)
-		log.Println(`Minimal disk space: `, spaceTracker.MinSpaceBytes)
-		log.Println(`Used space: `, spaceTracker.StartSpace-spaceTracker.MinSpaceBytes)
+		logic.Backup(dockerWrapper, dbackOpts, resticWrapper, spaceTracker)
 	case `restore`:
-		logic.Restore(s3Wrapper, resticWrapper, dockerWrapper, dbackOpts)
-		log.Println(`Minimal disk space: `, spaceTracker.MinSpaceBytes)
-		log.Println(`Used space: `, spaceTracker.StartSpace-spaceTracker.MinSpaceBytes)
+		logic.Restore(s3Wrapper, resticWrapper, dockerWrapper, dbackOpts, spaceTracker)
 	case `list`:
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"dback/utils/cli"
 	"dback/utils/dockerwrapper"
 	"dback/utils/resticwrapper"
+	"dback/utils/spacetracker"
 	"log"
 	"os"
 	"strings"
@@ -99,7 +100,7 @@ Run "dback backup --help" for more info`)
 }
 
 func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
-	resticWrapper *resticwrapper.ResticWrapper) {
+	resticWrapper *resticwrapper.ResticWrapper, spacetracker *spacetracker.SpaceTracker) {
 	mounts := getMountsForBackup(dockerWrapper, dbackOpts.Matchers, dbackOpts.ExcludePatterns)
 
 	if isMountsEmpty(mounts) {
@@ -120,6 +121,7 @@ func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
 	log.Println()
 	log.Println(`Backup started. Timestamp = ` + timestamp)
 	saveMountsToResticParallel(dockerWrapper, mounts, dbackOpts.ThreadsCount, resticWrapper, timestamp)
+	spacetracker.PrintReport()
 	log.Println(`Backup finished for the mounts above, in ` + time.Since(startBackupMoment).String())
 }
 

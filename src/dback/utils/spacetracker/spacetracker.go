@@ -10,6 +10,13 @@ import (
 	"github.com/shirou/gopsutil/disk"
 )
 
+const (
+	B  = 1
+	KB = 1024 * B
+	MB = 1024 * KB
+	GB = 1024 * MB
+)
+
 type SpaceTracker struct {
 	period        time.Duration
 	path          string
@@ -57,4 +64,17 @@ func getCurrentSpace(path string) uint64 {
 	check(err, `cannot get disk usage`)
 
 	return diskStat.Free
+}
+
+func (t *SpaceTracker) MinSpaceMB() int {
+	return int(t.MinSpaceBytes / MB)
+}
+
+func (t *SpaceTracker) UsedSpaceMB() int {
+	return int((t.StartSpace - t.MinSpaceBytes) / MB)
+}
+
+func (t *SpaceTracker) PrintReport() {
+	log.Println(`Minimal disk space: `, t.MinSpaceMB(), `MB`)
+	log.Println(`Used space: `, t.UsedSpaceMB(), `MB`)
 }
