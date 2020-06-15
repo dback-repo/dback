@@ -115,5 +115,5 @@ func copyLocalToMount(dockerWrapper *dockerwrapper.DockerWrapper, mount s3wrappe
 	dockerWrapper.CopyFolderToTar(dockerWrapper.GetMyselfContainerID(), `/tmp/dback-data/mount-data`+
 		mount.ContainerName+mount.Dest, `/tmp/dback-data/tarballs`+mount.ContainerName+mount.Dest)
 	dockerWrapper.CopyTarToFloder(`/tmp/dback-data/tarballs`+mount.ContainerName+mount.Dest+`/tar.tar`,
-		dockerWrapper.GetContainerIDByName(mount.ContainerName), `/`)
+		dockerWrapper.GetContainerIDByName(mount.ContainerName), destParent(mount.Dest))
 }

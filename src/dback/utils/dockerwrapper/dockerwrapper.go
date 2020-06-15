@@ -115,7 +115,7 @@ func (t *DockerWrapper) CopyTarToFloder(tarDestination, containerID, folderDesti
 
 	check(t.Docker.CopyToContainer(context.Background(), containerID,
 		folderDestination, tar,
-		types.CopyToContainerOptions{AllowOverwriteDirWithFile: true, CopyUIDGID: false}), `cannot copy to container`)
+		types.CopyToContainerOptions{AllowOverwriteDirWithFile: true, CopyUIDGID: true}), `cannot copy to container`)
 }
 
 func (t *DockerWrapper) GetContainerIDByName(containerName string) string {

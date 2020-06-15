@@ -53,6 +53,7 @@ try {cmd('docker volume rm dback-test-1.2-volume dback-test-1.2.1-volume dback-t
 initVolumeWithFile('dback-test-1.2-volume','data/file1.txt')
 initVolumeWithFile('dback-test-1.2.1-volume','data/file1.txt')
 initVolumeWithFile('dback-test-1.4-volume','data/file1.txt')
+initVolumeWithFile('dback-test-1.6-volume','data/file1.txt')
 
 //minio server (s3 compatible) for saving test mounts
 t.cmd('docker run --rm -d --name dback-test-1.minio -p 127.0.0.1:2157:9000 -e MINIO_ACCESS_KEY=dback_test -e MINIO_SECRET_KEY=3b464c70cf691ef6512ed51b2a minio/minio:RELEASE.2020-03-25T07-03-04Z server /data')
@@ -66,10 +67,10 @@ t.cmd('docker run --restart always -d --name dback-test-1.2 -v '+cd+'/data/mount
 t.cmd('docker run --restart always -d --name dback-test-1.3 nginx:1.17.8-alpine') 														//container has no mounts
 t.cmd('docker run --rm -d --name dback-test-1.4 -v dback-test-1.4-volume:/mount-vol nginx:1.17.8-alpine') 				//temporary container (--rm)
 t.cmd('docker run --restart always -d --name dback-test-1.5 -v '+cd+'/data/mount-dir:/mount-dir nginx:1.17.8-alpine') 					//ignored by --exclude-mount pattern
-t.cmd('docker run -d --name dback-test-1.6 -v '+cd+'/data/mount-dir:/mount-dir -v dback-test-1.2-volume:/mount-vol nginx:1.17.8-alpine')  //ignored due restart-policy==none
+t.cmd('docker run -d --name dback-test-1.6 -v '+cd+'/data/mount-dir:/mount-dir -v dback-test-1.6-volume:/mount-vol nginx:1.17.8-alpine')  //ignored due restart-policy==none
 
 
-// var out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-data dback backup -e -x "^/(drone.*|dback-test-1.5.*)$" -x "for-exclude$"').toString()
+// var out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback backup -e -x "^/(drone.*|dback-test-1.5.*)$" -x "for-exclude$"').toString()
 // checkSub(out,'Ignore container:  /dback-test-1.6  cause: matcher not found "RestartPolicy":{"Name":"always"')
 // checkSub(out,'Ignore container:  /dback-test-1.4  cause: matcher not found "RestartPolicy":{"Name":"always"')
 // checkSub(out,'Ignore container:  /dback-test-1.3  cause: container has no mounts')
@@ -82,7 +83,7 @@ t.cmd('docker run -d --name dback-test-1.6 -v '+cd+'/data/mount-dir:/mount-dir -
 // checkSub(out,'/dback-test-1.2/mount-vol')
 // checkSub(out,'The mounts above will be backup, if run dback without --emulate (-e) flag')
 
-var out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-data dback backup -x "^/(drone.*|dback-test-1.5.*)$" -x "for-exclude$" --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
+var out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback backup -x "^/(drone.*|dback-test-1.5.*)$" -x "for-exclude$" --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
 checkSub(out,'Ignore container:  /dback-test-1.6  cause: matcher not found "RestartPolicy":{"Name":"always"')
 checkSub(out,'Ignore container:  /dback-test-1.4  cause: matcher not found "RestartPolicy":{"Name":"always"')
 checkSub(out,'Ignore container:  /dback-test-1.3  cause: container has no mounts')
@@ -97,10 +98,29 @@ checkSub(out,'Backup finished for the mounts above, in ')
 console.log(out)
 
 //make 2nd snapshot, ignore container dback-test-1.2
-var out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-data dback backup -x "^/(drone.*|dback-test-1.5.*|dback-test-1.2.*)$" -x "for-exclude$" --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
+var out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback backup -x "^/(drone.*|dback-test-1.5.*|dback-test-1.2.*)$" -x "for-exclude$" --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
 
-out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-data dback restore --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
+//re-create dback-test-1.2, with new volumes 
+t.cmd('docker rm -f dback-test-1.2')
+t.cmd('docker volume rm dback-test-1.2-volume')
+//t.cmd('docker volume create dback-test-1.2-volume')
+initVolumeWithFile('dback-test-1.2-volume','data/file3.txt')
+t.cmd('docker run --restart always -d --name dback-test-1.2 -v dback-test-1.2-volume:/mount-vol nginx:1.17.8-alpine')
+
+//restore 
+out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback restore --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
 console.log(out)
+
+//check restored volume
+t.cmd('docker cp dback-test-1.2:/mount-vol '+cd+'/tmp')
+var content=fs.readFileSync(cd+'/tmp/mount-vol/file1.txt', "utf8");
+if (content!='file1'){
+	throw('File content is invalid. "file1" expected, but actually is "'+content+'"')
+}
+
+//docker exec -t dback-test-1.2 sh -c cat /mount-vol/1.txt
+
+
 
 //var out = t.cmd('docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v '+cd+'/tmp:/dback-snapshots dback backup --exclude-mount "^/(drone.*|dback-test-1.5.*)$" '+process.env.S3_ENDPOINT+' '+process.env.S3_BUCKET+' '+process.env.ACC_KEY+' '+process.env.SEC_KEY).toString()
 
@@ -111,4 +131,4 @@ console.log(out)
 
 
 t.cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4 dback-test-1.5 dback-test-1.6 dback-test-1.minio')
-t.cmd('docker volume rm dback-test-1.2-volume dback-test-1.2.1-volume dback-test-1.4-volume')
+t.cmd('docker volume rm dback-test-1.2-volume dback-test-1.2.1-volume dback-test-1.4-volume dback-test-1.6-volume')
