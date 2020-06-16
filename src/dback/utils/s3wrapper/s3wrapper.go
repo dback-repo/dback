@@ -44,20 +44,36 @@ func cutProtocol(s3Endpoint string) string {
 	return s3Endpoint
 }
 
+func (t *S3Wrapper) findRepoConfigsByPrefix(prefix string) []string {
+	res := []string{}
+
+	doneCh := make(chan struct{})
+
+	// Indicate to our routine to exit cleanly upon return.
+	defer close(doneCh)
+
+	objectCh := t.minio.ListObjects(t.s3Bucket, prefix, false, doneCh)
+	for object := range objectCh {
+		if object.Err != nil {
+			check(object.Err, `Cannot list object in prefix: `+prefix)
+		}
+
+		if strings.HasSuffix(object.Key, `/config`) {
+			return []string{object.Key}
+		}
+
+		res = append(res, t.findRepoConfigsByPrefix(object.Key)...)
+	}
+
+	return res
+}
+
 func (t *S3Wrapper) GetMounts(
 	resticWrapper *resticwrapper.ResticWrapper, dockerw *dockerwrapper.DockerWrapper) []S3Mount {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
 
-	resticFolders := []string{}
-
-	for object := range t.minio.ListObjects(t.s3Bucket, ``, true, doneCh) {
-		check(object.Err, `cannot list object at bucket `+t.s3Bucket)
-
-		if strings.Contains(object.Key, `/config`) {
-			resticFolders = append(resticFolders, object.Key)
-		}
-	}
+	resticFolders := t.findRepoConfigsByPrefix(``)
 
 	res := []S3Mount{}
 
