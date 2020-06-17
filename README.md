@@ -28,7 +28,7 @@ Corrupt zabbix DB
 ```sh
 docker exec -t dback-example-zabbix bash -c "rm -rf /var/lib/mysql/*"
 ```
-Open http://localhost,check database error shown<br>
+Open http://localhost, check database error shown<br>
 <br>
 Restore zabbix
 ```sh
@@ -37,7 +37,7 @@ docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var
 Open http://localhost, check login form works again
 
 # Options
-##### Default containers selection pattern:
+### Default containers selection pattern:
 By default, backup will applied for all mounts of each container matched all the options:
 - HostConfig.RestartPolicy != always
 - HostConfig.AutoRemove == false
@@ -46,7 +46,7 @@ By default, backup will applied for all mounts of each container matched all the
 You can override selection with --matcher flag. It is based on substrings matching in `docker inspect` json. It is awful, and planned to be updated with xpath matchers.
 
 
-##### Exclude mounts:
+### Exclude mounts:
 You able to ignore some mounts by regexp.<br>
 `dback backup --exclude-mount "^/(drone.*|dback-test-1.5.*)$"`
 this call will ignore all mounts started from "/drone" or "/dback-test-1.5"
