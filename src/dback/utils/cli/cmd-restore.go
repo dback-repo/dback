@@ -9,8 +9,9 @@ import (
 func NewRestoreCommand(reqest *cli.Request) *cobra.Command {
 	c := cobra.Command{
 		Use:   "restore",
-		Short: "restore backups from s3 to exist mounts",
-		Long:  `TOODO: longer description of restore`,
+		Short: "Restore backups from s3 to exist containers",
+		Long: `Restore backups from s3 to exist containers.
+Find all backups in s3 bucket, then restore all mounts exist at the host`,
 		Run: func(cmd *cobra.Command, args []string) {
 			reqest.Command = cmd.Use
 			reqest.Flags[`emulate`] = []string{cmd.Flag(`emulate`).Value.String()}

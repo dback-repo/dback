@@ -124,7 +124,7 @@ func parseSnapshots(out string) []Snapshot {
 
 func (t *ResticWrapper) ListSnapshots(s3Folder string) []Snapshot {
 	out, err := t.cmd(`.`, s3Folder, `snapshots`)
-	check(err, `cannot execute "restic snapshots"`)
+	check(err, `cannot execute "restic snapshots"`+"\r\n"+out)
 
 	return parseSnapshots(out)
 }

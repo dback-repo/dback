@@ -1,38 +1,46 @@
-Dback is observe and backup docker mounts by pattern.<br>
-By default, it also stop/start containers during backup, for prevent data corruption.
+Dback is application for observe docker containers, make bulk incremental backups
+of their mounts (folders and volumes), and pass backups to S3 bucket.
 
 # The main use case
 There is an instance with some important dockerized apps like Jenkins, GitLab, Vault, etc...
 - Somebody wants to add an extra dockerized application, and he won't setup backup for the app
 - All the apps can afford short downtime of each container
-- All exist and extra dockerized apps of the instance must have periodical backup
+- All exist and extra dockerized apps of the instance must have periodical (daily) backup
 
 # Example
+Run test application. Zabbix.
 ```sh
-docker run -t --rm -v //var/run/docker.sock:/var/run/docker.sock -v /tmp/dback-snapshots:/dback-snapshots dback/dback backup
+docker run --name dback-example-zabbix --restart always -p 127.0.0.1:80:80 -d zabbix/zabbix-appliance:alpine-4.4.0
 ```
-Mount backups named as: `dback-snapshots/[ContainerName]/[Path/In/Container]/tar.tar`
-
+Run s3 server (minio), with a bucket
 ```sh
-.
-└── gitlab
-    ├── etc
-    │   └── gitlab
-    │       └── tar.tar
-    └── var
-        ├── log
-        │   └── gitlab
-        │       └── tar.tar
-        └── opt
-            └── gitlab
-                └── tar.tar
+docker run --rm -d --name dback-test-1.minio -p 127.0.0.1:9000:9000 -e MINIO_ACCESS_KEY=dback_test -e MINIO_SECRET_KEY=3b464c70cf691ef6512ed51b2a minio/minio:RELEASE.2020-03-25T07-03-04Z server /data
+docker run --rm -d --link dback-test-1.minio:minio --entrypoint=sh minio/mc:RELEASE.2020-05-28T23-43-36Z -c "mc config host add minio http://minio:9000 dback_test 3b464c70cf691ef6512ed51b2a && mc mb minio/dback-test"
 ```
+Wait for ~1min for zabbix init<br>
+Open http://localhost, check the login form shown<br>
+<br>
+Backup mounts
+```sh
+docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback backup -x "/zabbix/var/lib/zabbix/ssh_keys" -x "/zabbix/var/lib/zabbix/ssl" -x "/drone-dback-runner/var/run" --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=SecureResticPassword11
+```
+Corrupt zabbix DB
+```sh
+docker exec -t dback-example-zabbix bash -c "rm -rf /var/lib/mysql/*"
+```
+Open http://localhost,check database error shown<br>
+<br>
+Restore zabbix
+```sh
+docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback restore --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=SecureResticPassword11
+```
+Open http://localhost, check login form works again
 
-##### Default backup pattern:
-Backup all mounts of each container matched all the options:
-- HostConfig.AutoRemove: false
-- HostConfig.RestartPolicy: != none
-- Status.State: running
+##### Default containers selection pattern:
+By default, backup will applied for all mounts of each container matched all the options:
+- HostConfig.RestartPolicy != always
+- HostConfig.AutoRemove == false
+- Status.Running == true
 
 ##### Exclude mounts:
 You able to ignore some mounts by regexp.<br>

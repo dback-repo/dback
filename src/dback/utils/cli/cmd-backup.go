@@ -9,8 +9,8 @@ import (
 func NewBackupCommand(reqest *cli.Request) *cobra.Command {
 	c := cobra.Command{
 		Use:   "backup",
-		Short: "Make backup, and pass it to S3 bucket",
-		Long: `Make backup, and pass it to S3 bucket
+		Short: "Observe containers, make mounts backup, then pass backups to S3 bucket",
+		Long: `Observe containers, make mounts backup, then pass backups to S3 bucket
   Create snapshot of mounts matched all the points:
   default points:
   - HostConfig.AutoRemove:      false

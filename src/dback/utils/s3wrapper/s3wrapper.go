@@ -55,7 +55,7 @@ func (t *S3Wrapper) findRepoConfigsByPrefix(prefix string) []string {
 	objectCh := t.minio.ListObjects(t.s3Bucket, prefix, false, doneCh)
 	for object := range objectCh {
 		if object.Err != nil {
-			check(object.Err, `Cannot list object in prefix: `+prefix)
+			check(object.Err, `Cannot list object in prefix: "`+prefix+`"`)
 		}
 
 		if strings.HasSuffix(object.Key, `/config`) {
