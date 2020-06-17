@@ -22,7 +22,7 @@ Open http://localhost, check the login form shown<br>
 <br>
 Backup mounts
 ```sh
-docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback backup -x "/zabbix/var/lib/zabbix/ssh_keys" -x "/zabbix/var/lib/zabbix/ssl" -x "/drone-dback-runner/var/run" --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=SecureResticPassword11
+docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback backup --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=SecureResticPassword11
 ```
 Corrupt zabbix DB
 ```sh
