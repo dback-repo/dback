@@ -36,11 +36,15 @@ docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var
 ```
 Open http://localhost, check login form works again
 
+# Options
 ##### Default containers selection pattern:
 By default, backup will applied for all mounts of each container matched all the options:
 - HostConfig.RestartPolicy != always
 - HostConfig.AutoRemove == false
 - Status.Running == true
+
+You can override selection with --matcher flag. It is based on substrings matching in `docker inspect` json. It is awful, and planned to be updated with xpath matchers.
+
 
 ##### Exclude mounts:
 You able to ignore some mounts by regexp.<br>
