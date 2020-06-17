@@ -39,7 +39,7 @@ Open http://localhost, check login form works again
 # Options
 ### Default containers selection pattern:
 By default, backup will applied for all mounts of each container matched all the options:
-- HostConfig.RestartPolicy != always
+- HostConfig.RestartPolicy == always
 - HostConfig.AutoRemove == false
 - Status.Running == true
 
