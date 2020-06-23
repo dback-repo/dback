@@ -71,6 +71,10 @@ func (t *ResticWrapper) Save(localFolder, s3Folder, tag string) {
 
 	out, err := t.backup(localFolder, s3Folder, tag)
 
+	if err == nil {
+		panic(`sdf`)
+	}
+
 	check(err, out)
 }
 
@@ -125,6 +129,10 @@ func parseSnapshots(out string) []Snapshot {
 func (t *ResticWrapper) ListSnapshots(s3Folder string) []Snapshot {
 	out, err := t.cmd(`.`, s3Folder, `snapshots`)
 	check(err, `cannot execute "restic snapshots"`+"\r\n"+out)
+	//panic(`sdf`)
+	// if err == nil {
+	// 	panic(`sdf`)
+	// }
 
 	return parseSnapshots(out)
 }
