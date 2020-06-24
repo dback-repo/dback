@@ -24,7 +24,7 @@ type ResticWrapper struct {
 
 func check(err error, msg string) {
 	if err != nil {
-		log.Fatalln(msg + "\r\n" + err.Error())
+		log.Panicln(msg + "\r\n" + err.Error())
 	}
 }
 
@@ -70,10 +70,6 @@ func (t *ResticWrapper) Save(localFolder, s3Folder, tag string) {
 	}
 
 	out, err := t.backup(localFolder, s3Folder, tag)
-
-	if err == nil {
-		panic(`sdf`)
-	}
 
 	check(err, out)
 }
