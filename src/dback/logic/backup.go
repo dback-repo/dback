@@ -6,6 +6,8 @@ import (
 	"dback/utils/dockerwrapper"
 	"dback/utils/resticwrapper"
 	"dback/utils/spacetracker"
+	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -136,12 +138,13 @@ func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
 	log.Println(`Backup finished for the mounts above, in ` + secondsFormat(time.Since(startBackupMoment)))
 }
 
+func startStoppedContainers(dockerWrapper *dockerwrapper.DockerWrapper, stoppedContainers []string) {
+	dockerWrapper.StartContainersByIDs(&stoppedContainers, true)
+}
+
 func saveMountsToResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, mounts []dockerwrapper.Mount,
 	threadsCount int, resticWrapper *resticwrapper.ResticWrapper, timestamp string) {
-	stoppedContainers := []string{}
-	defer dockerWrapper.StartContainersByIDs(&stoppedContainers, false) // for start containers even after panic
-
-	stoppedContainers = dockerWrapper.SelectRunningContainersByIDs(dockerWrapper.GetContainerIDsOfMounts(mounts))
+	stoppedContainers := dockerWrapper.SelectRunningContainersByIDs(dockerWrapper.GetContainerIDsOfMounts(mounts))
 	dockerWrapper.StopContainersByIDs(stoppedContainers, true)
 
 	wg := sync.WaitGroup{}
@@ -149,8 +152,10 @@ func saveMountsToResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, moun
 
 	mountsCh := make(chan dockerwrapper.Mount)
 
+	var saveErr error
+
 	for i := 0; i < threadsCount; i++ {
-		go saveMountsWorker(dockerWrapper, mountsCh, &wg, resticWrapper, timestamp)
+		go saveMountsWorker(dockerWrapper, mountsCh, &wg, resticWrapper, timestamp, &saveErr)
 	}
 
 	for _, curMount := range mounts {
@@ -159,10 +164,23 @@ func saveMountsToResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, moun
 
 	close(mountsCh)
 	wg.Wait()
+
+	if saveErr != nil {
+		startStoppedContainers(dockerWrapper, stoppedContainers) // errors with details are already printed
+		log.Fatalln(`Cannot save a mount. Stopped container is switched back to run`)
+	}
 }
 
 func saveMountsWorker(dockerWrapper *dockerwrapper.DockerWrapper, ch chan dockerwrapper.Mount,
-	wg *sync.WaitGroup, resticWrapper *resticwrapper.ResticWrapper, timestamp string) {
+	wg *sync.WaitGroup, resticWrapper *resticwrapper.ResticWrapper, timestamp string, saveErr *error) {
+	defer func() {
+		if r := recover(); r != nil {
+			*saveErr = errors.New(fmt.Sprint(r))
+		}
+
+		wg.Done()
+	}()
+
 	for {
 		mount, more := <-ch
 
@@ -175,10 +193,7 @@ func saveMountsWorker(dockerWrapper *dockerwrapper.DockerWrapper, ch chan docker
 		log.Println(`Save to restic:`, mount.ContainerName+mount.MountDest)
 		resticWrapper.Save(`/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest,
 			mount.ContainerName+mount.MountDest, timestamp)
-
-		go check(os.RemoveAll(`/tmp/dback-data/mount-data`+mount.ContainerName+mount.MountDest), `cannot remove data dir`)
 	}
-	wg.Done()
 }
 
 func copyMountToLocal(dockerWrapper *dockerwrapper.DockerWrapper, mount dockerwrapper.Mount) {
