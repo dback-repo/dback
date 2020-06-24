@@ -130,5 +130,5 @@ t.cmd('docker cp dback-test-1.2:/mount-vol '+cd+'/tmp')
 
 
 
-// t.cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4 dback-test-1.5 dback-test-1.6 dback-test-1.minio')
-// t.cmd('docker volume rm dback-test-1.2-volume dback-test-1.2.1-volume dback-test-1.4-volume dback-test-1.6-volume')
+t.cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4 dback-test-1.5 dback-test-1.6 dback-test-1.minio')
+t.cmd('docker volume rm dback-test-1.2-volume dback-test-1.2.1-volume dback-test-1.4-volume dback-test-1.6-volume')
