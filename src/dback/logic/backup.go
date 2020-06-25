@@ -164,10 +164,10 @@ func saveMountsToResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, moun
 
 	close(mountsCh)
 	wg.Wait()
+	startStoppedContainers(dockerWrapper, stoppedContainers) // errors with details are already printed
 
 	if saveErr != nil {
-		startStoppedContainers(dockerWrapper, stoppedContainers) // errors with details are already printed
-		log.Fatalln(`Cannot save a mount. Stopped container is switched back to run`)
+		log.Fatalln(`Cannot save a mount. Stopped containers are switched back to run`)
 	}
 }
 
