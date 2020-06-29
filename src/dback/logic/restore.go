@@ -45,7 +45,22 @@ func printS3MountsList(mounts []s3wrapper.S3Mount) {
 	log.Println(`Mounts list:`, mounts)
 }
 
-func Restore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
+func Restore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper, dockerw *dockerwrapper.DockerWrapper,
+	dbackParams cli.DbackOpts, dbackArgs []string, spacetracker *spacetracker.SpaceTracker) {
+	//log.Println(`params: `, dbackArgs)
+	if len(dbackArgs) == 0 {
+		restore(s3, resticw, dockerw, dbackParams, spacetracker)
+	} else {
+		switch dbackArgs[0] {
+		case `container`:
+			restoreContainer(s3, resticw, dockerw, dbackParams, spacetracker)
+		case `mount`:
+			log.Fatalln(`Error: Mounts restoring is not implemented yet`)
+		}
+	}
+}
+
+func restore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
 	dockerw *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts, spacetracker *spacetracker.SpaceTracker) {
 	s3MountsForRestore := getS3MountsForRestore(s3, resticw, dockerw, dbackOpts.Matchers)
 
