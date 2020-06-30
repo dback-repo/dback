@@ -12,8 +12,9 @@ import (
 )
 
 func getS3MountsForRestore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
-	dockerw *dockerwrapper.DockerWrapper, restoreParams []string) []s3wrapper.S3Mount {
-	s3Mounts := s3.GetMounts(resticw, dockerw)
+	dockerw *dockerwrapper.DockerWrapper, containerName string) []s3wrapper.S3Mount {
+	log.Println(`ContainerName`, containerName)
+	s3Mounts := s3.GetMounts(resticw, dockerw, containerName)
 
 	localMounts := dockerw.GetMountsOfContainers(dockerw.GetAllContainers())
 
@@ -31,8 +32,8 @@ func getS3MountsForRestore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.Resti
 		res[mountIdx].SelectedSnapshotID = curS3Mount.Snapshots[len(curS3Mount.Snapshots)-1].ID
 	}
 
-	//log.Println(`localMounts:`, localMounts)
-	log.Println(`restoreParams:`, restoreParams)
+	log.Println(`localMounts:`, localMounts)
+	log.Println(`s3Mounts:`, res)
 
 	return res
 }
@@ -45,15 +46,22 @@ func printS3MountsList(mounts []s3wrapper.S3Mount) {
 	log.Println(`Mounts list:`, mounts)
 }
 
+const RestoreContainerTwoArgs = 2
+const RestoreContainerThreeArgs = 3
+
 func Restore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper, dockerw *dockerwrapper.DockerWrapper,
 	dbackParams cli.DbackOpts, dbackArgs []string, spacetracker *spacetracker.SpaceTracker) {
-	//log.Println(`params: `, dbackArgs)
 	if len(dbackArgs) == 0 {
 		restore(s3, resticw, dockerw, dbackParams, spacetracker)
 	} else {
 		switch dbackArgs[0] {
 		case `container`:
-			restoreContainer(s3, resticw, dockerw, dbackParams, spacetracker)
+			if len(dbackArgs) == RestoreContainerTwoArgs {
+				restoreContainer(s3, resticw, dockerw, dbackParams, dbackArgs[1], spacetracker)
+			}
+			if len(dbackArgs) == RestoreContainerThreeArgs {
+				restoreContainerNewName(s3, resticw, dockerw, dbackParams, dbackArgs, spacetracker)
+			}
 		case `mount`:
 			log.Fatalln(`Error: Mounts restoring is not implemented yet`)
 		}
@@ -62,7 +70,7 @@ func Restore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper, dock
 
 func restore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
 	dockerw *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts, spacetracker *spacetracker.SpaceTracker) {
-	s3MountsForRestore := getS3MountsForRestore(s3, resticw, dockerw, dbackOpts.Matchers)
+	s3MountsForRestore := getS3MountsForRestore(s3, resticw, dockerw, ``)
 
 	if isS3MountsEmpty(s3MountsForRestore) {
 		printEmptyMountsMess()
