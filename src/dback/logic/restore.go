@@ -8,13 +8,16 @@ import (
 	"dback/utils/spacetracker"
 	"log"
 	"os"
+	"strings"
 	"sync"
 )
 
 func getS3MountsForRestore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
-	dockerw *dockerwrapper.DockerWrapper, containerName string) []s3wrapper.S3Mount {
-	log.Println(`ContainerName`, containerName)
-	s3Mounts := s3.GetMounts(resticw, dockerw, containerName)
+	dockerw *dockerwrapper.DockerWrapper, prefix string) []s3wrapper.S3Mount {
+	log.Println(`Prefix`, prefix)
+	prefix = strings.TrimPrefix(prefix, `/`)
+	log.Println(`Prefix`, prefix)
+	s3Mounts := s3.GetMounts(resticw, dockerw, prefix)
 
 	localMounts := dockerw.GetMountsOfContainers(dockerw.GetAllContainers())
 
@@ -63,7 +66,8 @@ func Restore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper, dock
 				restoreContainerNewName(s3, resticw, dockerw, dbackParams, dbackArgs, spacetracker)
 			}
 		case `mount`:
-			log.Fatalln(`Error: Mounts restoring is not implemented yet`)
+			restoreMount(s3, resticw, dockerw, dbackParams, dbackArgs[1], dbackArgs[2], spacetracker)
+			//log.Fatalln(`Error: Mounts restoring is not implemented yet`)
 		}
 	}
 }
@@ -127,16 +131,22 @@ func loadMountsWorker(dockerWrapper *dockerwrapper.DockerWrapper, ch chan s3wrap
 
 		check(os.MkdirAll(`/tmp/dback-data/mount-data`+mount.ContainerName+mount.Dest, 0664), `cannot make folder`)
 		resticWrapper.Load(`/`, mount.ContainerName+mount.Dest, mount.SelectedSnapshotID)
-		copyLocalToMount(dockerWrapper, mount)
+		copyLocalToMount(dockerWrapper, mount, ``)
 
 		log.Println(`Load from restic:`, mount.ContainerName+mount.Dest)
 	}
 	wg.Done()
 }
 
-func copyLocalToMount(dockerWrapper *dockerwrapper.DockerWrapper, mount s3wrapper.S3Mount) {
+func copyLocalToMount(dockerWrapper *dockerwrapper.DockerWrapper, mount s3wrapper.S3Mount, containerName string) {
+	if containerName == `` {
+		containerName = mount.ContainerName
+	}
+
+	log.Println(`copyLocalToMount`, mount, containerName)
+
 	dockerWrapper.CopyFolderToTar(dockerWrapper.GetMyselfContainerID(), `/tmp/dback-data/mount-data`+
 		mount.ContainerName+mount.Dest, `/tmp/dback-data/tarballs`+mount.ContainerName+mount.Dest)
 	dockerWrapper.CopyTarToFloder(`/tmp/dback-data/tarballs`+mount.ContainerName+mount.Dest+`/tar.tar`,
-		dockerWrapper.GetContainerIDByName(mount.ContainerName), destParent(mount.Dest))
+		dockerWrapper.GetContainerIDByName(containerName), destParent(mount.Dest))
 }

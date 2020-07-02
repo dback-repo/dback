@@ -137,6 +137,10 @@ console.log(out)
 out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback restore container dback-test-1.1 dback-test-1.2 --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
 console.log(out)
 
+//restore single container with diff name
+out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback restore mount /dback-test-1.1/mount-dir /dback-test-1.2/mount-dir --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
+console.log(out)
+
 
 t.cmd('docker rm -f dback-test-1.1 dback-test-1.2 dback-test-1.3 dback-test-1.4 dback-test-1.5 dback-test-1.6 dback-test-1.minio')
 t.cmd('docker volume rm dback-test-1.2-volume dback-test-1.2.1-volume dback-test-1.4-volume dback-test-1.6-volume') 

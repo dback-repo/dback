@@ -94,10 +94,8 @@ func loadMountsWorkerToContainer(dockerWrapper *dockerwrapper.DockerWrapper, ch 
 
 		check(os.MkdirAll(`/tmp/dback-data/mount-data`+containerNameLeadingSlash(containerName)+
 			mount.Dest, 0664), `cannot make folder`)
-		resticWrapper.Load(`/`, containerNameLeadingSlash(containerName)+mount.Dest, mount.SelectedSnapshotID)
-		copyLocalToMount(dockerWrapper, mount)
-
-		log.Println(`Load from restic:`, containerNameLeadingSlash(containerName)+mount.Dest)
+		resticWrapper.Load(`/`, mount.ContainerName+mount.Dest, mount.SelectedSnapshotID)
+		copyLocalToMount(dockerWrapper, mount, containerNameLeadingSlash(containerName))
 	}
 	wg.Done()
 }
