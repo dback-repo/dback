@@ -12,6 +12,19 @@ import (
 	"sync"
 )
 
+func getS3MountsOfContainer(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
+	dockerw *dockerwrapper.DockerWrapper, containerName string) []s3wrapper.S3Mount {
+	containerName = strings.TrimPrefix(containerName, `/`)
+
+	res := s3.GetMounts(resticw, dockerw, containerName)
+
+	for mountIdx, curS3Mount := range res {
+		res[mountIdx].SelectedSnapshotID = curS3Mount.Snapshots[len(curS3Mount.Snapshots)-1].ID
+	}
+
+	return res
+}
+
 func getS3MountsForRestore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
 	dockerw *dockerwrapper.DockerWrapper, prefix string) []s3wrapper.S3Mount {
 	prefix = strings.TrimPrefix(prefix, `/`)

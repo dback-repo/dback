@@ -43,7 +43,7 @@ func restoreContainer(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrap
 func restoreContainerNewName(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
 	dockerw *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts, dbackArgs []string,
 	spacetracker *spacetracker.SpaceTracker) {
-	s3MountsForRestore := getS3MountsForRestore(s3, resticw, dockerw, dbackArgs[1])
+	s3MountsForRestore := getS3MountsOfContainer(s3, resticw, dockerw, dbackArgs[1])
 
 	if isS3MountsEmpty(s3MountsForRestore) {
 		printEmptyMountsMess()
