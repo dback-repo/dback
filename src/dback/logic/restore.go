@@ -14,9 +14,7 @@ import (
 
 func getS3MountsForRestore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
 	dockerw *dockerwrapper.DockerWrapper, prefix string) []s3wrapper.S3Mount {
-	log.Println(`Prefix`, prefix)
 	prefix = strings.TrimPrefix(prefix, `/`)
-	log.Println(`Prefix`, prefix)
 	s3Mounts := s3.GetMounts(resticw, dockerw, prefix)
 
 	localMounts := dockerw.GetMountsOfContainers(dockerw.GetAllContainers())
@@ -35,18 +33,11 @@ func getS3MountsForRestore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.Resti
 		res[mountIdx].SelectedSnapshotID = curS3Mount.Snapshots[len(curS3Mount.Snapshots)-1].ID
 	}
 
-	log.Println(`localMounts:`, localMounts)
-	log.Println(`s3Mounts:`, res)
-
 	return res
 }
 
 func isS3MountsEmpty(mounts []s3wrapper.S3Mount) bool {
 	return len(mounts) == 0
-}
-
-func printS3MountsList(mounts []s3wrapper.S3Mount) {
-	log.Println(`Mounts list:`, mounts)
 }
 
 const RestoreContainerTwoArgs = 2
@@ -55,7 +46,7 @@ const RestoreContainerThreeArgs = 3
 func Restore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper, dockerw *dockerwrapper.DockerWrapper,
 	dbackParams cli.DbackOpts, dbackArgs []string, spacetracker *spacetracker.SpaceTracker) {
 	if len(dbackArgs) == 0 {
-		restore(s3, resticw, dockerw, dbackParams, spacetracker)
+		restoreAll(s3, resticw, dockerw, dbackParams, spacetracker)
 	} else {
 		switch dbackArgs[0] {
 		case `container`:
@@ -66,13 +57,16 @@ func Restore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper, dock
 				restoreContainerNewName(s3, resticw, dockerw, dbackParams, dbackArgs, spacetracker)
 			}
 		case `mount`:
-			restoreMount(s3, resticw, dockerw, dbackParams, dbackArgs[1], dbackArgs[2], spacetracker)
-			//log.Fatalln(`Error: Mounts restoring is not implemented yet`)
+			if len(dbackArgs) == RestoreContainerTwoArgs {
+				restoreMount(s3, resticw, dockerw, dbackArgs[1], dbackArgs[1], spacetracker)
+			} else {
+				restoreMount(s3, resticw, dockerw, dbackArgs[1], dbackArgs[2], spacetracker)
+			}
 		}
 	}
 }
 
-func restore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
+func restoreAll(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
 	dockerw *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts, spacetracker *spacetracker.SpaceTracker) {
 	s3MountsForRestore := getS3MountsForRestore(s3, resticw, dockerw, ``)
 
@@ -80,12 +74,6 @@ func restore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
 		printEmptyMountsMess()
 		return
 	}
-
-	printS3MountsList(s3MountsForRestore)
-
-	// if !isApproved(dbackOpts.AutoProceedFlag) {
-	// 	return
-	// }
 
 	dbackOpts.ThreadsCount = correctThreadsCount(dbackOpts.ThreadsCount, len(s3MountsForRestore))
 
@@ -142,8 +130,6 @@ func copyLocalToMount(dockerWrapper *dockerwrapper.DockerWrapper, mount s3wrappe
 	if containerName == `` {
 		containerName = mount.ContainerName
 	}
-
-	log.Println(`copyLocalToMount`, mount, containerName)
 
 	dockerWrapper.CopyFolderToTar(dockerWrapper.GetMyselfContainerID(), `/tmp/dback-data/mount-data`+
 		mount.ContainerName+mount.Dest, `/tmp/dback-data/tarballs`+mount.ContainerName+mount.Dest)

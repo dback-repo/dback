@@ -1,7 +1,6 @@
 package logic
 
 import (
-	"dback/utils/cli"
 	"dback/utils/dockerwrapper"
 	"dback/utils/resticwrapper"
 	"dback/utils/s3wrapper"
@@ -15,8 +14,6 @@ func contanerNameByS3MountID(s3Mount string) string {
 	res := ``
 	arr := strings.Split(s3Mount, `/`)
 
-	log.Println(arr)
-
 	if len(arr) >= 1 {
 		res = arr[1]
 	}
@@ -25,12 +22,9 @@ func contanerNameByS3MountID(s3Mount string) string {
 }
 
 func restoreMount(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
-	dockerw *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts, mount1, mount2 string,
+	dockerw *dockerwrapper.DockerWrapper, mount1, mount2 string,
 	spacetracker *spacetracker.SpaceTracker) {
 	s3MountsForRestore := getS3MountsForRestore(s3, resticw, dockerw, mount1)
-	log.Println(`s3MountsForRestore`, s3MountsForRestore)
-	log.Println(`dbackOpts`, dbackOpts)
-	log.Println(`mount2`, mount2)
 
 	if isS3MountsEmpty(s3MountsForRestore) {
 		printEmptyMountsMess()
@@ -49,6 +43,8 @@ func restoreMount(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
 		printEmptyMountsMess()
 		return
 	}
+
+	log.Println(`Load from restic: ` + mount1 + ` to ` + mount2)
 
 	check(os.MkdirAll(`/tmp/dback-data/mount-data`+mount1, 0664), `cannot make folder`)
 	resticw.Load(`/`, mount1, s3Mount.SelectedSnapshotID)
