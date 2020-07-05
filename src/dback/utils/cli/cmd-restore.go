@@ -21,6 +21,7 @@ Find all backups in s3 bucket, then restore all mounts exist at the host`,
 			reqest.Flags[`s3-acc-key`] = []string{cmd.Flag(`s3-acc-key`).Value.String()}
 			reqest.Flags[`s3-sec-key`] = []string{cmd.Flag(`s3-sec-key`).Value.String()}
 			reqest.Flags[`restic-pass`] = []string{cmd.Flag(`restic-pass`).Value.String()}
+			reqest.Args = args
 		},
 	}
 

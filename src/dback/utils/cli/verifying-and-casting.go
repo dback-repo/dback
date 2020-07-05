@@ -17,7 +17,10 @@ type DbackOpts struct {
 	ThreadsCount    int
 }
 
-func VerifyAndCast(req cli.Request) (DbackOpts, resticwrapper.CreationOpts) {
+const minRestoreArgs = 2
+const maxRestoreArgs = 3
+
+func VerifyAndCast(req cli.Request) (DbackOpts, []string, resticwrapper.CreationOpts) {
 	f := req.Flags
 
 	switch req.Command {
@@ -26,6 +29,21 @@ func VerifyAndCast(req cli.Request) (DbackOpts, resticwrapper.CreationOpts) {
 			log.Fatalln(`"dback backup" accepts no arguments`)
 		}
 	case `restore`:
+		if len(req.Args) > 0 {
+			if req.Args[0] != `container` && req.Args[0] != `mount` {
+				log.Fatalln(`"dback restore" accepts only subcommands "container" and "mount"`)
+			}
+
+			if len(req.Args) < minRestoreArgs {
+				log.Fatalln(`"dback ` + req.Args[0] +
+					`" require one or two arguments, but no arguments provided`)
+			}
+
+			if len(req.Args) > maxRestoreArgs {
+				log.Fatalln(`"dback ` + req.Args[0] +
+					`" require one or two arguments. Too many args provided`)
+			}
+		}
 	case ``:
 		//no command provided. Parse CLI is already printed an advice
 		os.Exit(1)
@@ -61,7 +79,7 @@ Run "dback ` + req.Command + ` --help", for details`)
 		}
 	}
 
-	return dbackOpts, resticOpts
+	return dbackOpts, req.Args, resticOpts
 }
 
 //Positive or zero integer

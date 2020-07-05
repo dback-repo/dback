@@ -13,7 +13,7 @@ import (
 
 func main() {
 	cliRequest := cli.ParseCLI()
-	dbackOpts, resticOpts := cli.VerifyAndCast(cliRequest)
+	dbackOpts, dbackArgs, resticOpts := cli.VerifyAndCast(cliRequest)
 
 	dockerWrapper := &dockerwrapper.DockerWrapper{Docker: dockerbuilder.NewDockerClient()}
 	defer dockerWrapper.Close()
@@ -27,7 +27,7 @@ func main() {
 	case `backup`:
 		logic.Backup(dockerWrapper, dbackOpts, resticWrapper, spaceTracker)
 	case `restore`:
-		logic.Restore(s3Wrapper, resticWrapper, dockerWrapper, dbackOpts, spaceTracker)
+		logic.Restore(s3Wrapper, resticWrapper, dockerWrapper, dbackOpts, dbackArgs, spaceTracker)
 	case `list`:
 	}
 }

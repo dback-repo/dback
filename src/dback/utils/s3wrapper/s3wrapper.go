@@ -69,11 +69,12 @@ func (t *S3Wrapper) findRepoConfigsByPrefix(prefix string) []string {
 }
 
 func (t *S3Wrapper) GetMounts(
-	resticWrapper *resticwrapper.ResticWrapper, dockerw *dockerwrapper.DockerWrapper) []S3Mount {
+	resticWrapper *resticwrapper.ResticWrapper, dockerw *dockerwrapper.DockerWrapper,
+	containerName string) []S3Mount {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
 
-	resticFolders := t.findRepoConfigsByPrefix(``)
+	resticFolders := t.findRepoConfigsByPrefix(containerName)
 
 	res := []S3Mount{}
 
