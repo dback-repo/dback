@@ -62,8 +62,7 @@ func loadMountsFromResticParallelToContainer(dockerWrapper *dockerwrapper.Docker
 	stoppedContainers := []string{}
 	defer dockerWrapper.StartContainersByIDs(&stoppedContainers, false) // for start containers even after panic
 
-	stoppedContainers = dockerWrapper.SelectRunningContainersByIDs(s3wrapper.GetContainerIDsOfMounts(
-		s3Mounts, dockerWrapper))
+	stoppedContainers = []string{dockerWrapper.GetContainerIDByName(containerNameLeadingSlash(containerName))}
 	dockerWrapper.StopContainersByIDs(stoppedContainers, true)
 
 	wg := sync.WaitGroup{}
