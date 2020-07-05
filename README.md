@@ -22,7 +22,7 @@ Open http://localhost, check the login form shown<br>
 <br>
 Backup mounts of zabbix, and may be other containers match default selection pattern
 ```sh
-docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback/dback:0.0.92 backup --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=SecureResticPassword11
+docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback/dback:0.0.102 backup --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=SecureResticPassword11
 ```
 Corrupt zabbix DB
 ```sh
@@ -32,7 +32,7 @@ Open http://localhost, check database error shown<br>
 <br>
 Restore all mounts of zabbix container
 ```sh
-docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback/dback:0.0.92 restore container dback-example-zabbix --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=SecureResticPassword11
+docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback/dback:0.0.102 restore container dback-example-zabbix --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=SecureResticPassword11
 ```
 Open http://localhost, check login form works again
 
