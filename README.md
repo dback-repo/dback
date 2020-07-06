@@ -1,5 +1,6 @@
 Dback is application for observe docker containers, make bulk incremental backups
 of their mounts (folders and volumes), and pass backups to S3 bucket.
+Runs [restic](https://github.com/restic/restic) under the hood.
 
 # The main use case
 There is an instance with some important dockerized apps like Jenkins, GitLab, Vault, etc...
