@@ -9,9 +9,29 @@ import (
 func NewRestoreCommand(reqest *cli.Request) *cobra.Command {
 	c := cobra.Command{
 		Use:   "restore",
-		Short: "Restore backups from s3 to exist containers",
-		Long: `Restore backups from s3 to exist containers.
-Find all backups in s3 bucket, then restore all mounts exist at the host`,
+		Short: "Restore backups from s3 to exist containers or mounts",
+		Long: `Restore backups from s3 to exist containers or mounts.
+
+Container restore
+	Restore a snapshot to local mounts of container, wich has the same name
+	dback restore container app-container-name <...flags>
+
+Container restore, with different name
+	Restore a snapshot to local mounts of container, wich has a different name
+	dback restore container app-container-name app-new-local-container-name <...flags>
+
+Mount restore
+	Restore a snapshot to local mount with the same container name
+	dback restore mount app-container-name/var/lib/mysql <...flags>
+
+Mount restore, with different container name
+	Restore a snapshot to local mount with the same container name
+	dback restore mount app-container-name/var/lib/mysql app-new-local-container-name/var/lib/mysql <...flags>
+
+Bulk restore
+	Find all backups in s3 bucket, then restore all mounts exist at the host
+	dback restore <...flags>
+`,
 		Run: func(cmd *cobra.Command, args []string) {
 			reqest.Command = cmd.Use
 			reqest.Flags[`emulate`] = []string{cmd.Flag(`emulate`).Value.String()}
