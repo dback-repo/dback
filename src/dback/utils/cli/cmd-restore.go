@@ -12,7 +12,7 @@ func NewRestoreCommand(reqest *cli.Request) *cobra.Command {
 		Short: "Restore backups from s3 to exist containers or mounts",
 		Long: `Restore backups from s3 to exist containers or mounts.
 
-Container restore
+Container restore 
 	Restore a snapshot to local mounts of container, wich has the same name
 	dback restore container app-container-name <...flags>
 
