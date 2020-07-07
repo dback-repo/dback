@@ -19,6 +19,8 @@ type DbackOpts struct {
 
 const minRestoreArgs = 2
 const maxRestoreArgs = 3
+const maxLsArgs = 2
+const minLsSnapshotsArgs = 3
 
 func VerifyAndCast(req cli.Request) (DbackOpts, []string, resticwrapper.CreationOpts) {
 	f := req.Flags
@@ -28,6 +30,16 @@ func VerifyAndCast(req cli.Request) (DbackOpts, []string, resticwrapper.Creation
 		if len(req.Args) > 0 {
 			log.Fatalln(`"dback backup" accepts no arguments`)
 		}
+	case `ls`:
+		if len(req.Args) > 0 {
+			// if len(req.Args) > maxLsArgs {
+			// 	log.Fatalln(`"dback ls ` + req.Args[0] +
+			// 		`" require zero, one, or two arguments. Too many arguments provided`)
+			// 	if req.Args[0] == `snapshots` && len(req.Args) < minLsSnapshotsArgs {
+			// 		log.Fatalln(`"dback ls snapshots" require an argument, but no arguments provided`)
+			// 	}
+			// }
+		}
 	case `restore`:
 		if len(req.Args) > 0 {
 			if req.Args[0] != `container` && req.Args[0] != `mount` {
@@ -35,13 +47,13 @@ func VerifyAndCast(req cli.Request) (DbackOpts, []string, resticwrapper.Creation
 			}
 
 			if len(req.Args) < minRestoreArgs {
-				log.Fatalln(`"dback ` + req.Args[0] +
+				log.Fatalln(`"dback restore ` + req.Args[0] +
 					`" require one or two arguments, but no arguments provided`)
 			}
 
 			if len(req.Args) > maxRestoreArgs {
-				log.Fatalln(`"dback ` + req.Args[0] +
-					`" require one or two arguments. Too many args provided`)
+				log.Fatalln(`"dback restore ` + req.Args[0] +
+					`" require one or two arguments. Too many arguments provided`)
 			}
 		}
 	case ``:
@@ -53,7 +65,6 @@ func VerifyAndCast(req cli.Request) (DbackOpts, []string, resticwrapper.Creation
 	}
 
 	dbackOpts := DbackOpts{
-		IsEmulation:     dockerwrapper.NewEmulateFlag(f[`emulate`][0]),
 		Matchers:        f[`matcher`],
 		ExcludePatterns: dockerwrapper.NewExcludePatterns(f[`exclude`]),
 		ThreadsCount:    verifyThreads(f[`threads`][0]),
