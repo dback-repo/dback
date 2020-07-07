@@ -47,7 +47,7 @@ By default, backup will applied for all mounts of each container matched all the
 You can override selection with --matcher flag. It is based on substrings matching in `docker inspect` json. It is awful, and planned to be updated with xpath matchers.
 
 
-### Exclude mounts:
+### Exclude mounts or containers:
 You able to ignore some mounts by regexp.<br>
 `dback backup --exclude-mount "^/(drone.*|dback-test-1.5.*)$"`
 this call will ignore all mounts started from "/drone" or "/dback-test-1.5"
