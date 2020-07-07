@@ -21,7 +21,7 @@ docker run --rm -d --link dback-test-1.minio:minio --entrypoint=sh minio/mc:RELE
 Wait for ~1min for zabbix init<br>
 Open http://localhost, check the login form shown<br>
 <br>
-Backup mounts of zabbix, and may be other containers match default selection pattern
+Backup mounts of zabbix, and may be some other containers matching default selection pattern
 ```sh
 docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback/dback:0.0.102 backup --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=SecureResticPassword11
 ```
@@ -39,12 +39,12 @@ Open http://localhost, check login form works again
 
 # Backup options
 ### Default containers selection pattern:
-By default, backup will applied for all mounts of each container matched all the options:
+By default, backup will be applied for all mounts of each container matched the options:
 - HostConfig.RestartPolicy == always
 - HostConfig.AutoRemove == false
 - Status.Running == true
 
-You can override selection with --matcher flag. It is based on substrings matching in `docker inspect` json. It is awful, and planned to be updated with xpath matchers.
+The pattern can be overrided with --matcher flag. It is based on substrings matching in `docker inspect` json. It is awful, and planned to be updated with xpath matchers.
 
 
 ### Exclude mounts or containers:
