@@ -21,7 +21,7 @@ docker run --rm -d --link dback-test-1.minio:minio --entrypoint=sh minio/mc:RELE
 Wait for ~1min for zabbix init<br>
 Open http://localhost, check the login form shown<br>
 <br>
-Backup mounts of zabbix, and may be other containers match default selection pattern
+Backup mounts of zabbix, and may be some other containers matching default selection pattern
 ```sh
 docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback/dback:0.0.102 backup --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=SecureResticPassword11
 ```
@@ -37,25 +37,35 @@ docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var
 ```
 Open http://localhost, check login form works again
 
-# Options
+# Backup options
 ### Default containers selection pattern:
-By default, backup will applied for all mounts of each container matched all the options:
+By default, backup will be applied for all mounts of each container matched the options:
 - HostConfig.RestartPolicy == always
 - HostConfig.AutoRemove == false
 - Status.Running == true
 
-You can override selection with --matcher flag. It is based on substrings matching in `docker inspect` json. It is awful, and planned to be updated with xpath matchers.
+The pattern can be overrided with --matcher flag. It is based on substrings matching in `docker inspect` json. It is awful, and planned to be updated with xpath matchers.
 
 
-### Exclude mounts:
+### Exclude mounts or containers:
 You able to ignore some mounts by regexp.<br>
 `dback backup --exclude-mount "^/(drone.*|dback-test-1.5.*)$"`
 this call will ignore all mounts started from "/drone" or "/dback-test-1.5"
 
 
-# Alternatives:
-Perhaps these tools will work for you:<br>
+# Alternatives, and why dback created:
+Inspired by these projects:<br>
 https://github.com/christophetd/duplicacy-autobackup<br>
 https://github.com/loomchild/volume-backup<br>
 https://github.com/istepanov/docker-backup-to-s3<br>
 https://github.com/lobaro/restic-backup-docker<br>
+<br>
+The apps listed above did not support some features dback provides:
+* **Containers observation.** Dback is find and backup all containers matching the pattern.
+* **Auto stop/start containers.** Dback is always stops containers before make backup, and then start they, even if something went wrong.
+* **Incremental backup.** 2nd and subsequent backups are faster than 1st, because [restic](https://github.com/restic/restic) sending and store only the difference between shots.
+* **Bulk restoring.** You are able to restore all the mouns of target container, and even all saved mounts of all containers, with a single command.
+* **Concurrency.** By default - start a thread for each mount. Can be decreased.
+* **Retrying** - [restic](https://github.com/restic/restic) will retry mount backup procedure, if something went wrong.
+
+That's why dback is more useful in some cases.
