@@ -61,11 +61,11 @@ https://github.com/istepanov/docker-backup-to-s3<br>
 https://github.com/lobaro/restic-backup-docker<br>
 <br>
 The apps listed above did not support some features dback provides:
-* Containers observation. Dback is find and backup all containers matching the pattern.
-* Auto stop/start containers. Dback is always stops containers before make backup, and then start they, even if something went wrong.
-* Incremental backup. 2nd and subsequent backups are faster than 1st, because [restic](https://github.com/restic/restic) sending and store only the difference between shots.
-* Bulk restoring. You are able to restore all the mouns of target container, and even all saved mounts of all containers, with a single command.
-* Concurrency. By default - start a thread for each mount. Can be decreased.
-* Retrying - [restic](https://github.com/restic/restic) will retry mount backup procedure, if something went wrong.
+* **Containers observation.** Dback is find and backup all containers matching the pattern.
+* **Auto stop/start containers.** Dback is always stops containers before make backup, and then start they, even if something went wrong.
+* **Incremental backup.** 2nd and subsequent backups are faster than 1st, because [restic](https://github.com/restic/restic) sending and store only the difference between shots.
+* **Bulk restoring.** You are able to restore all the mouns of target container, and even all saved mounts of all containers, with a single command.
+* **Concurrency.** By default - start a thread for each mount. Can be decreased.
+* **Retrying** - [restic](https://github.com/restic/restic) will retry mount backup procedure, if something went wrong.
 
 That's why dback is more useful in some cases.
