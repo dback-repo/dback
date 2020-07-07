@@ -37,7 +37,7 @@ docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var
 ```
 Open http://localhost, check login form works again
 
-# Options
+# Backup options
 ### Default containers selection pattern:
 By default, backup will applied for all mounts of each container matched all the options:
 - HostConfig.RestartPolicy == always

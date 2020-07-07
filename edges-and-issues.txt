@@ -1,16 +1,3 @@
-A volume mounted to multiple containers. We are must stop all containers that mount the volume, for backup volume.
 Links in the volume (hard or symbol)
 Permissions in the volume
-If we want to backup containers, we must save also networks
-
-CLI format
-
-dback dobackup local
-dback dobackup local someContainer
-dback dobackup local someContainer:/var/data
-
-dback dobackup remote 192.168.1.100
-dback dobackup remote 192.168.1.100 someContainer
-
-dback restore local
-dback restore local someContainer
+File mounts
