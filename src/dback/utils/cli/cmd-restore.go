@@ -18,10 +18,10 @@ Sub-commands:
 
   container
       Container restore with same name
-        Restore a snapshot to local mounts of container, wich has the same name
+        Restore a snapshot to local mounts of container, which has the same name
         dback restore container app-container-name <...flags>    
       Container restore, with different name
-        Restore a snapshot to local mounts of container, wich has a different name
+        Restore a snapshot to local mounts of container, which has a different name
         dback restore container app-container-name app-new-local-container-name <...flags>
 
   mount

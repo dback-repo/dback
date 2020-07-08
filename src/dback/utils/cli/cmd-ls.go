@@ -10,17 +10,17 @@ func NewListCommand(reqest *cli.Request) *cobra.Command {
 	c := cobra.Command{
 		Use:   "ls",
 		Short: "List present mounts, and snapshots in the bucket",
-		Long: `List present mounts, and snapshots in the bucket
+		Long: `List present mounts, and snapshots in the bucket.
 With no arguments, "ls" prints all the mounts present in the bucket.
-If you provide a mount as argument - "ls" show snapshots of the mount.
-dback ls <...flags>
-dback ls /app-container-name/var/lib/mysql <...flags>
+  dback ls <...flags>
 
-Sub-commands:
+If you provide a mount prefix as argument - "ls" show mounts starts with prefix.
+For example - mounts of some container.
+  dback ls /app-container-name <...flags>
 
-  snapshots
-    show list of the mount's snapshots
-    dback ls snapshots /app-container-name/var/lib/mysql <...flags>
+If you provided full name of a mount - "ls" show snapshots of the mount.
+You are able to restore snapshot you need with "dback restore" command.
+  dback ls /app-container-name/var/lib/mysql <...flags>
 `,
 		Run: func(cmd *cobra.Command, args []string) {
 			reqest.Command = cmd.Use

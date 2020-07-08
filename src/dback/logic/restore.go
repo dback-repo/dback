@@ -92,7 +92,7 @@ func restoreAll(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
 
 	loadMountsFromResticParallel(dockerw, s3MountsForRestore, dbackOpts.ThreadsCount, resticw)
 	spacetracker.PrintReport()
-	log.Println(`Restore finished for the mounts above`)
+	log.Println(`Restoring finished for the mounts above`)
 }
 
 func loadMountsFromResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, s3Mounts []s3wrapper.S3Mount,

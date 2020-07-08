@@ -19,26 +19,16 @@ type DbackOpts struct {
 
 const minRestoreArgs = 2
 const maxRestoreArgs = 3
-const maxLsArgs = 2
-const minLsSnapshotsArgs = 3
 
-func VerifyAndCast(req cli.Request) (DbackOpts, []string, resticwrapper.CreationOpts) {
-	f := req.Flags
-
+func VerifyArgsCount(req cli.Request) {
 	switch req.Command {
 	case `backup`:
 		if len(req.Args) > 0 {
 			log.Fatalln(`"dback backup" accepts no arguments`)
 		}
 	case `ls`:
-		if len(req.Args) > 0 {
-			// if len(req.Args) > maxLsArgs {
-			// 	log.Fatalln(`"dback ls ` + req.Args[0] +
-			// 		`" require zero, one, or two arguments. Too many arguments provided`)
-			// 	if req.Args[0] == `snapshots` && len(req.Args) < minLsSnapshotsArgs {
-			// 		log.Fatalln(`"dback ls snapshots" require an argument, but no arguments provided`)
-			// 	}
-			// }
+		if len(req.Args) > 1 {
+			log.Fatalln(`"dback ls" accepts only single argument. Too many arguments provided`)
 		}
 	case `restore`:
 		if len(req.Args) > 0 {
@@ -63,6 +53,12 @@ func VerifyAndCast(req cli.Request) (DbackOpts, []string, resticwrapper.Creation
 		log.Fatalln(`Unrecognized command ` + req.Command +
 			`. Run "dback --help", for list of available commands`)
 	}
+}
+
+func VerifyAndCast(req cli.Request) (DbackOpts, []string, resticwrapper.CreationOpts) {
+	f := req.Flags
+
+	VerifyArgsCount(req)
 
 	dbackOpts := DbackOpts{
 		Matchers:        f[`matcher`],
