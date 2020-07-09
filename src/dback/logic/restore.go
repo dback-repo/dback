@@ -71,9 +71,9 @@ func Restore(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper, dock
 			}
 		case `mount`:
 			if len(dbackArgs) == RestoreContainerTwoArgs {
-				restoreMount(s3, resticw, dockerw, dbackArgs[1], dbackArgs[1], spacetracker)
+				restoreMount(s3, resticw, dockerw, dbackArgs[1], dbackArgs[1], dbackParams.Snapshot, spacetracker)
 			} else {
-				restoreMount(s3, resticw, dockerw, dbackArgs[1], dbackArgs[2], spacetracker)
+				restoreMount(s3, resticw, dockerw, dbackArgs[1], dbackArgs[2], dbackParams.Snapshot, spacetracker)
 			}
 		}
 	}
@@ -90,13 +90,13 @@ func restoreAll(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
 
 	dbackOpts.ThreadsCount = correctThreadsCount(dbackOpts.ThreadsCount, len(s3MountsForRestore))
 
-	loadMountsFromResticParallel(dockerw, s3MountsForRestore, dbackOpts.ThreadsCount, resticw)
+	loadMountsFromResticParallel(dockerw, s3MountsForRestore, dbackOpts.ThreadsCount, dbackOpts.Snapshot, resticw)
 	spacetracker.PrintReport()
 	log.Println(`Restoring finished for the mounts above`)
 }
 
 func loadMountsFromResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, s3Mounts []s3wrapper.S3Mount,
-	threadsCount int, resticWrapper *resticwrapper.ResticWrapper) {
+	threadsCount int, snapshot string, resticWrapper *resticwrapper.ResticWrapper) {
 	stoppedContainers := []string{}
 	defer dockerWrapper.StartContainersByIDs(&stoppedContainers, false) // for start containers even after panic
 
@@ -114,6 +114,12 @@ func loadMountsFromResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, s3
 	}
 
 	for _, curMount := range s3Mounts {
+		curMount.SelectSnapshotByTag(snapshot)
+
+		if curMount.SelectedSnapshotID == `` {
+			log.Fatalln(`Snapshot `, snapshot, ` not found for mount`, curMount.ContainerName+curMount.Dest)
+		}
+
 		mountsCh <- curMount
 	}
 

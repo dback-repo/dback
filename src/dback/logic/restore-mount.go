@@ -22,7 +22,7 @@ func contanerNameByS3MountID(s3Mount string) string {
 }
 
 func restoreMount(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
-	dockerw *dockerwrapper.DockerWrapper, mount1, mount2 string,
+	dockerw *dockerwrapper.DockerWrapper, mount1, mount2, snapshot string,
 	spacetracker *spacetracker.SpaceTracker) {
 	s3MountsForRestore := getS3MountsForRestore(s3, resticw, dockerw, mount1)
 
@@ -36,7 +36,15 @@ func restoreMount(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
 	for curMountIdx, curMount := range s3MountsForRestore {
 		if curMount.ContainerName+curMount.Dest == mount1 {
 			s3Mount = &(s3MountsForRestore[curMountIdx])
+			s3Mount.SelectSnapshotByTag(snapshot)
+
+			break
 		}
+	}
+
+	if s3Mount.SelectedSnapshotID == `` {
+		log.Println(`Snapshot `+snapshot+` not found for mount`, s3Mount.ContainerName+s3Mount.Dest)
+		return
 	}
 
 	if s3Mount == nil {
