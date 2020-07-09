@@ -41,6 +41,7 @@ Sub-commands:
 			reqest.Flags[`s3-acc-key`] = []string{cmd.Flag(`s3-acc-key`).Value.String()}
 			reqest.Flags[`s3-sec-key`] = []string{cmd.Flag(`s3-sec-key`).Value.String()}
 			reqest.Flags[`restic-pass`] = []string{cmd.Flag(`restic-pass`).Value.String()}
+			reqest.Flags[`snapshot`] = []string{cmd.Flag(`snapshot`).Value.String()}
 			reqest.Args = args
 		},
 	}
@@ -51,6 +52,7 @@ Sub-commands:
 	c.PersistentFlags().StringP(`s3-acc-key`, `a`, ``, `s3 access key`)
 	c.PersistentFlags().StringP(`s3-sec-key`, `s`, ``, `s3 secret key`)
 	c.PersistentFlags().StringP(`restic-pass`, `p`, ``, `restic password`)
+	c.PersistentFlags().String(`snapshot`, ``, `timestamp of snapshot. Can be listed with "dback ls <mount>"`)
 
 	return &c
 }

@@ -133,6 +133,11 @@ t.cmd('docker cp dback-test-1.2:/mount-vol '+cd+'/tmp')
 out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback restore container dback-test-1.1 --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
 console.log(out)
 
+//restore single container with same name
+out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback restore container dback-test-1.1 --snapshot=09.07.2020.16-30-25 --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
+console.log(out)
+
+
 //restore single container with diff name
 out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback restore container dback-test-1.1 dback-test-1.2 --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
 console.log(out)

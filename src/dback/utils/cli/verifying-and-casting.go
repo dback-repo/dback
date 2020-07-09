@@ -15,6 +15,7 @@ type DbackOpts struct {
 	Matchers        []string
 	ExcludePatterns []dockerwrapper.ExcludePattern
 	ThreadsCount    int
+	Snapshot        string
 }
 
 const minRestoreArgs = 2
@@ -64,6 +65,10 @@ func VerifyAndCast(req cli.Request) (DbackOpts, []string, resticwrapper.Creation
 		Matchers:        f[`matcher`],
 		ExcludePatterns: dockerwrapper.NewExcludePatterns(f[`exclude`]),
 		ThreadsCount:    verifyThreads(f[`threads`][0]),
+	}
+
+	if len(f[`snapshot`]) > 0 {
+		dbackOpts.Snapshot = f[`snapshot`][0]
 	}
 
 	resticOpts := resticwrapper.CreationOpts{
