@@ -22,6 +22,20 @@ type S3Mount struct {
 	SelectedSnapshotID string
 }
 
+// if tag is not empty string - update SelectedSnapshotID
+// when snapshot tag not found - erase SelectedSnapshotID
+func (mount *S3Mount) SelectSnapshotByTag(tag string) {
+	if tag != `` {
+		mount.SelectedSnapshotID = ``
+		for _, curSnapshot := range mount.Snapshots {
+			if curSnapshot.Tag == tag {
+				mount.SelectedSnapshotID = curSnapshot.ID
+				break
+			}
+		}
+	}
+}
+
 func check(err error, msg string) {
 	if err != nil {
 		log.Fatalln(msg + "\r\n" + err.Error())
