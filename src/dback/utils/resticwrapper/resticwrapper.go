@@ -20,6 +20,7 @@ type ResticWrapper struct {
 	accKey     string
 	secKey     string
 	resticPass string
+	s3Region   string
 }
 
 func check(err error, msg string) {
@@ -35,11 +36,16 @@ func NewResticWrapper(opts CreationOpts) *ResticWrapper {
 		accKey:     opts.S3Opts.AccKey,
 		secKey:     opts.S3Opts.SecKey,
 		resticPass: opts.ResticPass,
+		s3Region:   opts.S3Opts.S3Region,
 	}
 }
 
 func (t *ResticWrapper) cmd(localFolder, s3Folder, command string, arg ...string) (string, error) {
 	commandArg := append([]string{command}, arg...)
+
+	if t.s3Region != `` {
+		commandArg = append(commandArg, `-o`, `s3.region=`+t.s3Region)
+	}
 
 	cmd := exec.Command(`/bin/restic`, commandArg...)
 	cmd.Dir = localFolder

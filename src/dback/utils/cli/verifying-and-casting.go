@@ -81,6 +81,10 @@ func VerifyAndCast(req cli.Request) (DbackOpts, []string, resticwrapper.Creation
 		ResticPass: f[`restic-pass`][0],
 	}
 
+	if len(f[`s3-region`]) > 0 {
+		resticOpts.S3Opts.S3Region = f[`s3-region`][0]
+	}
+
 	if !dbackOpts.IsEmulation {
 		if resticOpts.S3Opts.S3Endpoint == `` || resticOpts.S3Opts.S3Bucket == `` ||
 			resticOpts.S3Opts.AccKey == `` || resticOpts.S3Opts.SecKey == `` ||
