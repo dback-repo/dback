@@ -39,6 +39,7 @@ Options:
 			reqest.Flags[`s3-bucket`] = []string{cmd.Flag(`s3-bucket`).Value.String()}
 			reqest.Flags[`s3-acc-key`] = []string{cmd.Flag(`s3-acc-key`).Value.String()}
 			reqest.Flags[`s3-sec-key`] = []string{cmd.Flag(`s3-sec-key`).Value.String()}
+			reqest.Flags[`s3-region`] = []string{cmd.Flag(`s3-region`).Value.String()}
 			reqest.Flags[`restic-pass`] = []string{cmd.Flag(`restic-pass`).Value.String()}
 
 			reqest.Args = args
@@ -53,6 +54,7 @@ Options:
 	c.PersistentFlags().StringP(`s3-bucket`, `b`, ``, `name of bucket at the s3 endpoint`)
 	c.PersistentFlags().StringP(`s3-acc-key`, `a`, ``, `s3 access key`)
 	c.PersistentFlags().StringP(`s3-sec-key`, `s`, ``, `s3 secret key`)
+	c.PersistentFlags().String(`s3-region`, ``, `s3 region, for example eu-central-1`)
 	c.PersistentFlags().StringP(`restic-pass`, `p`, ``, `restic password`)
 
 	return &c
