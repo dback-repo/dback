@@ -1,11 +1,14 @@
 package logic
 
 import (
+	"bytes"
 	"context"
 	"dback/utils/cli"
 	"dback/utils/dockerwrapper"
 	"dback/utils/resticwrapper"
 	"dback/utils/spacetracker"
+	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"log"
@@ -14,13 +17,38 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/net/html"
+
+	"github.com/antchfx/htmlquery"
 	"github.com/docker/docker/api/types"
+	"github.com/yosssi/gohtml"
+	"vimagination.zapto.org/json2xml"
 )
 
 func check(err error, msg string) {
 	if err != nil {
 		log.Fatalln(msg, "\r\n", err.Error())
 	}
+}
+
+//check a node exist at least once
+func isNodeExistByXpath(xmlNode *html.Node, xpath string) bool {
+	return len(htmlquery.Find(xmlNode, xpath)) > 0
+}
+
+func getXmlInspectByContainer(dockerWrapper *dockerwrapper.DockerWrapper, container types.Container) *html.Node {
+	_, cntBytes, _ := dockerWrapper.Docker.ContainerInspectWithRaw(context.Background(), container.ID, true)
+
+	buf := strings.Builder{}
+	x := xml.NewEncoder(&buf)
+	check(json2xml.Convert(json.NewDecoder(bytes.NewReader(cntBytes)), x), `cannot convert json to xml`)
+	check(x.Flush(), `cannot flush xml encoder`)
+
+	gohtml.Condense = true
+	res, err := htmlquery.Parse(bytes.NewReader([]byte(buf.String())))
+	check(err, `Cannot parse xml: `+buf.String())
+
+	return res
 }
 
 func getContainersForBackup(dockerWrapper *dockerwrapper.DockerWrapper, matchers []string) []types.Container {
@@ -33,12 +61,11 @@ func getContainersForBackup(dockerWrapper *dockerwrapper.DockerWrapper, matchers
 				` cause: container has no mounts`)
 		}
 
-		_, cntBytes, _ := dockerWrapper.Docker.ContainerInspectWithRaw(context.Background(), curContainer.ID, true)
-
+		xmlInspectNode := getXmlInspectByContainer(dockerWrapper, curContainer)
 		match := true // container will be selected for backup, if inspect json contains all matchers substrings
 
 		for _, curMatcher := range matchers {
-			if !strings.Contains(string(cntBytes), curMatcher) {
+			if !isNodeExistByXpath(xmlInspectNode, curMatcher) {
 				log.Println(`Ignore container: `, dockerWrapper.GetCorrectContainerName(curContainer.Names),
 					` cause: matcher not found`, curMatcher)
 
@@ -57,6 +84,7 @@ func getContainersForBackup(dockerWrapper *dockerwrapper.DockerWrapper, matchers
 }
 
 //0    => mountCount
+//1    => 1
 //9999 => mountCount
 func correctThreadsCount(threadsCount int, mountCount int) int {
 	if threadsCount == 0 || threadsCount > mountCount {

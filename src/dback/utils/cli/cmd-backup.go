@@ -11,10 +11,11 @@ func NewBackupCommand(reqest *cli.Request) *cobra.Command {
 		Use:   "backup",
 		Short: "Observe containers, make mounts backup, then pass backups to S3 bucket",
 		Long: `Observe containers, make mounts backup, then pass backups to S3 bucket
-  Create snapshot of mounts matched all the points:
+  Create snapshot of mounts matching all the points:
   default points:
   - HostConfig.AutoRemove:      false
-  - HostConfig.RestartPolicy:   always
+  - HostConfig.RestartPolicy:   !no
+  - Running:                    true
 
 Options:
   --exclude            Exclude volume pattern
@@ -46,8 +47,8 @@ Options:
 		},
 	}
 	c.PersistentFlags().StringSliceP(`matcher`, `m`,
-		[]string{`"RestartPolicy":{"Name":"always"`, `"AutoRemove":false`, `"Running":true`},
-		`backup containers with all defined preferences`)
+		[]string{`//*[@name='RestartPolicy']/string[text()!='no']`, `//*[@name='AutoRemove' and text()='false']`,
+			`//*[@name='Running' and text()='true']`}, `backup containers with all defined preferences`)
 	c.PersistentFlags().StringSliceP(`exclude`, `x`, []string{}, `exclude mounts by RegEx pattern`)
 	c.PersistentFlags().StringP(`threads`, `t`, `0`, `run mounts backup concurrently. 0 - create a thread for each mount`)
 	c.PersistentFlags().String(`s3-endpoint`, ``, `with protocol and port "http://192.168.0.3:1337"`)
