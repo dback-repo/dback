@@ -41,7 +41,7 @@ func List(s3 *s3wrapper.S3Wrapper, resticw *resticwrapper.ResticWrapper,
 	s3Mounts := getS3MountsForRestore(s3, resticw, dockerw, prefix)
 
 	if len(s3Mounts) == 0 {
-		log.Println(`Zero mounts found. Try to call "dback ls" without arguments, and then check the bucket`)
+		log.Println(`No mounts found. Try to call "dback ls" without arguments, and then check the bucket`)
 		return
 	}
 

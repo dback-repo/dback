@@ -161,6 +161,11 @@ console.log(out)
 out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback ls /containerNotExist --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
 console.log(out)
 
+//show xml of container inspect
+out = t.cmd('docker run --rm -t -v //var/run/docker.sock:/var/run/docker.sock dback inspect /dback-test-1.1').toString()
+console.log(out)
+
+
 //tests for restore all the kinds, with snapshot
 
 //restore single container with same name, with incorrect snapshot
