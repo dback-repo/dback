@@ -67,6 +67,6 @@ The apps listed above did not support some features dback provides:
 * **Incremental backup.** 2nd and subsequent backups are faster than 1st, because [restic](https://github.com/restic/restic) sending and store only the difference between shots.
 * **Bulk restoring.** You are able to restore all the mounts of target container, and even all saved mounts of all containers, with a single command.
 * **Concurrency.** By default - start a thread for each mount. Can be decreased.
-* **Retrying** - [restic](https://github.com/restic/restic) will retry mount backup procedure, if something went wrong.
+* **Retrying.**  [Restic](https://github.com/restic/restic) will retry mount backup procedure, if something went wrong.
 
 That's why dback is more useful in some cases.
