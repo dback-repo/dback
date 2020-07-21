@@ -17,7 +17,7 @@ Run s3 server (minio), with a bucket
 ```sh
 docker run --rm -d --name dback-test-1.minio -p 127.0.0.1:9000:9000 -e MINIO_ACCESS_KEY=dback_test -e MINIO_SECRET_KEY=3b464c70cf691ef6512ed51b2a minio/minio:RELEASE.2020-03-25T07-03-04Z server /data
 docker run --rm -d --link dback-test-1.minio:minio --entrypoint=sh minio/mc:RELEASE.2020-05-28T23-43-36Z -c "mc config host add minio http://minio:9000 dback_test 3b464c70cf691ef6512ed51b2a && mc mb minio/dback-test"
-```
+``` 
 Wait for ~1min for zabbix init<br>
 Open http://localhost, check the login form shown<br>
 <br>
