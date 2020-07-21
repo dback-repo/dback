@@ -71,10 +71,10 @@ t.cmd('docker run -d --name dback-test-1.6 -v '+cd+'/data/mount-dir:/mount-dir -
 
 
 // var out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback backup -e -x "^/(drone.*|dback-test-1.5.*)$" -x "for-exclude$"').toString()
-// checkSub(out,'Ignore container:  /dback-test-1.6  cause: matcher not found "RestartPolicy":{"Name":"always"')
-// checkSub(out,'Ignore container:  /dback-test-1.4  cause: matcher not found "RestartPolicy":{"Name":"always"')
+// checkSub(out,'Ignore container:  /dback-test-1.6  cause: matcher not found 'RestartPolicy':{"Name":"always"')
+// checkSub(out,'Ignore container:  /dback-test-1.4  cause: matcher not found 'RestartPolicy':{"Name":"always"')
 // checkSub(out,'Ignore container:  /dback-test-1.3  cause: container has no mounts')
-// checkSub(out,'Ignore container:  /dback-test-1.minio  cause: matcher not found "RestartPolicy":{"Name":"always"')
+// checkSub(out,'Ignore container:  /dback-test-1.minio  cause: matcher not found 'RestartPolicy':{"Name":"always"')
 // checkSub(out,'Exclude mount: /dback-test-1.5/mount-dir      cause: --exclude-mount ^/(drone.*|dback-test-1.5.*)$')
 // checkSub(out,'Exclude mount: /dback-test-1.2/mount-vol-for-exclude      cause: --exclude-mount for-exclude$')
 // checkSub(out,'Emulation started')
@@ -84,10 +84,10 @@ t.cmd('docker run -d --name dback-test-1.6 -v '+cd+'/data/mount-dir:/mount-dir -
 // checkSub(out,'The mounts above will be backup, if run dback without --emulate (-e) flag')
 
 var out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback backup -x "^/(drone.*|dback-test-1.5.*)$" -x "for-exclude$" --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
-checkSub(out,'Ignore container:  /dback-test-1.6  cause: matcher not found "RestartPolicy":{"Name":"always"')
-checkSub(out,'Ignore container:  /dback-test-1.4  cause: matcher not found "RestartPolicy":{"Name":"always"')
+checkSub(out,'Ignore container:  /dback-test-1.6  cause: matcher not found //*[@name=\'RestartPolicy\']/string[text()!=\'no\']')
+checkSub(out,'Ignore container:  /dback-test-1.4  cause: matcher not found //*[@name=\'RestartPolicy\']/string[text()!=\'no\']')
 checkSub(out,'Ignore container:  /dback-test-1.3  cause: container has no mounts')
-checkSub(out,'Ignore container:  /dback-test-1.minio  cause: matcher not found "RestartPolicy":{"Name":"always"')
+checkSub(out,'Ignore container:  /dback-test-1.minio  cause: matcher not found //*[@name=\'RestartPolicy\']/string[text()!=\'no\']')
 checkSub(out,'Exclude mount: /dback-test-1.5/mount-dir      cause: --exclude-mount ^/(drone.*|dback-test-1.5.*)$')
 checkSub(out,'Exclude mount: /dback-test-1.2/mount-vol-for-exclude      cause: --exclude-mount for-exclude$')
 checkSub(out,'Backup started. Timestamp = ')
@@ -160,6 +160,11 @@ console.log(out)
 //list snapshots with prefix doesn't exist
 out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback ls /containerNotExist --s3-endpoint=http://minio:9000 -b=dback-test -a=dback_test -s=3b464c70cf691ef6512ed51b2a -p=sdf').toString()
 console.log(out)
+
+//show xml of container inspect
+out = t.cmd('docker run --rm -t -v //var/run/docker.sock:/var/run/docker.sock dback inspect /dback-test-1.1').toString()
+console.log(out)
+
 
 //tests for restore all the kinds, with snapshot
 

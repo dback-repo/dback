@@ -29,7 +29,7 @@ func VerifyArgsCount(req cli.Request) {
 		}
 	case `ls`:
 		if len(req.Args) > 1 {
-			log.Fatalln(`"dback ls" accepts only single argument. Too many arguments provided`)
+			log.Fatalln(`"dback ls" accepts zero or single argument. Too many arguments provided`)
 		}
 	case `restore`:
 		if len(req.Args) > 0 {
@@ -46,6 +46,10 @@ func VerifyArgsCount(req cli.Request) {
 				log.Fatalln(`"dback restore ` + req.Args[0] +
 					`" require one or two arguments. Too many arguments provided`)
 			}
+		}
+	case `inspect`:
+		if len(req.Args) != 1 {
+			log.Fatalln(`"dback inspect" accepts only single argument: container`)
 		}
 	case ``:
 		//no command provided. Parse CLI is already printed an advice
@@ -64,7 +68,10 @@ func VerifyAndCast(req cli.Request) (DbackOpts, []string, resticwrapper.Creation
 	dbackOpts := DbackOpts{
 		Matchers:        f[`matcher`],
 		ExcludePatterns: dockerwrapper.NewExcludePatterns(f[`exclude`]),
-		ThreadsCount:    verifyThreads(f[`threads`][0]),
+	}
+
+	if len(f[`threads`]) > 0 {
+		dbackOpts.ThreadsCount = verifyThreads(f[`threads`][0])
 	}
 
 	if len(f[`snapshot`]) > 0 {
@@ -72,20 +79,34 @@ func VerifyAndCast(req cli.Request) (DbackOpts, []string, resticwrapper.Creation
 	}
 
 	resticOpts := resticwrapper.CreationOpts{
-		S3Opts: s3opts.CreationOpts{
-			S3Endpoint: f[`s3-endpoint`][0],
-			S3Bucket:   f[`s3-bucket`][0],
-			AccKey:     f[`s3-acc-key`][0],
-			SecKey:     f[`s3-sec-key`][0],
-		},
-		ResticPass: f[`restic-pass`][0],
+		S3Opts: s3opts.CreationOpts{},
+	}
+
+	if len(f[`restic-pass`]) > 0 {
+		resticOpts.ResticPass = f[`restic-pass`][0]
 	}
 
 	if len(f[`s3-region`]) > 0 {
 		resticOpts.S3Opts.S3Region = f[`s3-region`][0]
 	}
 
-	if !dbackOpts.IsEmulation {
+	if len(f[`s3-endpoint`]) > 0 {
+		resticOpts.S3Opts.S3Endpoint = f[`s3-endpoint`][0]
+	}
+
+	if len(f[`s3-bucket`]) > 0 {
+		resticOpts.S3Opts.S3Bucket = f[`s3-bucket`][0]
+	}
+
+	if len(f[`s3-acc-key`]) > 0 {
+		resticOpts.S3Opts.AccKey = f[`s3-acc-key`][0]
+	}
+
+	if len(f[`s3-sec-key`]) > 0 {
+		resticOpts.S3Opts.SecKey = f[`s3-sec-key`][0]
+	}
+
+	if req.Command != `inspect` && !dbackOpts.IsEmulation {
 		if resticOpts.S3Opts.S3Endpoint == `` || resticOpts.S3Opts.S3Bucket == `` ||
 			resticOpts.S3Opts.AccKey == `` || resticOpts.S3Opts.SecKey == `` ||
 			resticOpts.ResticPass == `` {

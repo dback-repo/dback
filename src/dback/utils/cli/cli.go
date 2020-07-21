@@ -16,7 +16,8 @@ func ParseCLI() cli.Request {
 		NewRootCommand(),
 		NewBackupCommand(&cliRequest),
 		NewListCommand(&cliRequest),
-		NewRestoreCommand(&cliRequest))
+		NewRestoreCommand(&cliRequest),
+		NewInspectCommand(&cliRequest))
 
 	return cliRequest
 }

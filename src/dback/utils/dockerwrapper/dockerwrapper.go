@@ -1,7 +1,10 @@
 package dockerwrapper
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"encoding/xml"
 	"io"
 	"log"
 	"os"
@@ -9,8 +12,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/yosssi/gohtml"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+	"vimagination.zapto.org/json2xml"
 )
 
 type DockerWrapper struct {
@@ -204,4 +210,19 @@ func (t *DockerWrapper) GetContainerNameByID(containerID string) string {
 	}
 
 	return ``
+}
+
+//it is hostname
+func (t *DockerWrapper) GetDockerInspectXMLByContainerName(containerName string) string {
+	_, cntBytes, err := t.Docker.ContainerInspectWithRaw(context.Background(), t.GetContainerIDByName(containerName), true)
+	check(err, `cannot inspect container`)
+
+	buf := strings.Builder{}
+	x := xml.NewEncoder(&buf)
+	check(json2xml.Convert(json.NewDecoder(bytes.NewReader(cntBytes)), x), `cannot convert json to xml`)
+	check(x.Flush(), `cannot flush xml encoder`)
+
+	gohtml.Condense = true
+
+	return gohtml.Format(buf.String())
 }
