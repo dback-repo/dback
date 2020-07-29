@@ -166,9 +166,9 @@ func (t *DockerWrapper) StartContainersByIDs(ids *[]string, panicOnError bool) {
 		err := t.Docker.ContainerStart(context.Background(), curContainerID, types.ContainerStartOptions{})
 
 		if panicOnError {
-			check(err, `Cannot stop container: `+curContainerID)
+			check(err, `Cannot start container: `+curContainerID)
 		} else {
-			checkJustLog(err, `Cannot stop container: `+curContainerID)
+			checkJustLog(err, `Cannot start container: `+curContainerID)
 		}
 	}
 }
