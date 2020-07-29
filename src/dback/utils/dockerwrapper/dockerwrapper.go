@@ -161,14 +161,49 @@ func (t *DockerWrapper) GetContainerIDsOfMounts(mounts []Mount) []string {
 	return res
 }
 
-func (t *DockerWrapper) StartContainersByIDs(ids *[]string, panicOnError bool) {
+//try to start all containers in the list
+//return containers failed to start, and errors
+func (t *DockerWrapper) startContainersByIDs(ids *[]string) (*[]string, []error) {
+	res := []string{}
+	errors := []error{}
+
 	for _, curContainerID := range *ids {
 		err := t.Docker.ContainerStart(context.Background(), curContainerID, types.ContainerStartOptions{})
 
-		if panicOnError {
-			check(err, `Cannot stop container: `+curContainerID)
-		} else {
-			checkJustLog(err, `Cannot stop container: `+curContainerID)
+		if err != nil {
+			errors = append(errors, err)
+			res = append(res, curContainerID)
+		}
+	}
+
+	return &res, errors
+}
+
+const StartRetries = 10
+
+func printContainersStartingErrors(errors []error, description string, panicOnError bool) {
+	for _, curError := range errors {
+		log.Println(curError.Error())
+	}
+
+	if panicOnError {
+		log.Fatalln(description)
+	}
+}
+
+func (t *DockerWrapper) StartContainersByIDs(ids *[]string, panicOnError bool) {
+	var errors []error
+
+	for i := 0; i < StartRetries; i++ {
+		if len(*ids) == 0 {
+			return
+		}
+
+		containersCount := len(*ids)
+		ids, errors = t.startContainersByIDs(ids)
+
+		if containersCount == len(*ids) { // if last call don't start any containers
+			printContainersStartingErrors(errors, `Multiple errors while containers starting`, panicOnError)
 		}
 	}
 }

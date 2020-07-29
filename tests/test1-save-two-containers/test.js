@@ -18,13 +18,13 @@ t.cmd('docker run --rm -d --link dback-test-1.minio:minio --entrypoint=sh minio/
 
 //this containers should be saved
 t.cmd('docker run --restart always -d --name dback-test-1.1 -v '+cd+'/data/mount-dir:/mount-dir nginx:1.17.8-alpine')
-t.cmd('docker run --restart always -d --name dback-test-1.2 -v '+cd+'/data/mount-dir:/mount-dir -v dback-test-1.2-volume:/mount-vol -v dback-test-1.2.1-volume:/mount-vol-for-exclude nginx:1.17.8-alpine')
+t.cmd('docker run --link dback-test-1.1:dback-test-1.1 --restart always -d --name dback-test-1.2 -v '+cd+'/data/mount-dir:/mount-dir -v dback-test-1.2-volume:/mount-vol -v dback-test-1.2.1-volume:/mount-vol-for-exclude nginx:1.17.8-alpine')
 
 //this containers should be ignored
-t.cmd('docker run --restart always -d --name dback-test-1.3 nginx:1.17.8-alpine') 														//container has no mounts
-t.cmd('docker run --rm -d --name dback-test-1.4 -v dback-test-1.4-volume:/mount-vol nginx:1.17.8-alpine') 				//temporary container (--rm)
-t.cmd('docker run --restart always -d --name dback-test-1.5 -v '+cd+'/data/mount-dir:/mount-dir nginx:1.17.8-alpine') 					//ignored by --exclude-mount pattern
-t.cmd('docker run -d --name dback-test-1.6 -v '+cd+'/data/mount-dir:/mount-dir -v dback-test-1.6-volume:/mount-vol nginx:1.17.8-alpine')  //ignored due restart-policy==none
+t.cmd('docker run --link dback-test-1.2:dback-test-1.2 --restart always -d --name dback-test-1.3 nginx:1.17.8-alpine') 														//container has no mounts
+t.cmd('docker run --link dback-test-1.3:dback-test-1.3 --rm -d --name dback-test-1.4 -v dback-test-1.4-volume:/mount-vol nginx:1.17.8-alpine') 				//temporary container (--rm)
+t.cmd('docker run --link dback-test-1.4:dback-test-1.4 --restart always -d --name dback-test-1.5 -v '+cd+'/data/mount-dir:/mount-dir nginx:1.17.8-alpine') 					//ignored by --exclude-mount pattern
+t.cmd('docker run --link dback-test-1.5:dback-test-1.5 -d --name dback-test-1.6 -v '+cd+'/data/mount-dir:/mount-dir -v dback-test-1.6-volume:/mount-vol nginx:1.17.8-alpine')  //ignored due restart-policy==none
 
 
 // var out = t.cmd('docker run --rm -t --link dback-test-1.minio:minio -v //var/run/docker.sock:/var/run/docker.sock dback backup -e -x "^/(drone.*|dback-test-1.5.*)$" -x "for-exclude$"').toString()
