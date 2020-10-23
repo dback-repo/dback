@@ -22,7 +22,11 @@ Options:
     mounts are named as: [ContainerName]/[PathInContainer]
     For example, mount in "mysql" container: mysql/var/mysql/data
     Pattern is a regular expression. For example, "^/(drone.*|dback-test-1.5.*)$"
-    ignore all mounts starts with "/drone", or "/dback-test-1.5"`,
+    ignore all mounts starts with "/drone", or "/dback-test-1.5"
+  --interrupt               Temporary stop containers doesn't matched for backup by name, matching regex.
+    In case, when container is making heavy system load - it may prevent starting another containers after backup.
+    "Highload" containers are may be encountered here, and for stop during backup.
+    Even if they are not matched for making backup, or excluded with --exclude option`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 
@@ -30,6 +34,9 @@ Options:
 			reqest.Flags[`emulate`] = []string{cmd.Flag(`emulate`).Value.String()}
 
 			reqest.Flags[`exclude`], err = cmd.PersistentFlags().GetStringSlice(`exclude`)
+			check(err)
+
+			reqest.Flags[`interrupt`], err = cmd.PersistentFlags().GetStringSlice(`interrupt`)
 			check(err)
 
 			reqest.Flags[`matcher`], err = cmd.PersistentFlags().GetStringSlice(`matcher`)
@@ -50,6 +57,7 @@ Options:
 		[]string{`//*[@name='RestartPolicy']/string[text()!='no']`, `//*[@name='AutoRemove' and text()='false']`,
 			`//*[@name='Running' and text()='true']`}, `backup containers with all defined preferences`)
 	c.PersistentFlags().StringSliceP(`exclude`, `x`, []string{}, `exclude mounts by RegEx pattern`)
+	c.PersistentFlags().StringSliceP(`interrupt`, `i`, []string{}, `temporary stop required containers during backup`)
 	c.PersistentFlags().StringP(`threads`, `t`, `0`, `run mounts backup concurrently. 0 - create a thread for each mount`)
 	c.PersistentFlags().String(`s3-endpoint`, ``, `with protocol and port "http://192.168.0.3:1337"`)
 	c.PersistentFlags().StringP(`s3-bucket`, `b`, ``, `name of bucket at the s3 endpoint`)

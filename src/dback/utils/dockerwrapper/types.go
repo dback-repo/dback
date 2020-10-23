@@ -2,7 +2,6 @@ package dockerwrapper
 
 import (
 	"regexp"
-	"strconv"
 )
 
 type ExcludePattern string
@@ -23,9 +22,18 @@ func NewExcludePatterns(strArr []string) []ExcludePattern {
 
 type EmulateFlag bool
 
-func NewEmulateFlag(str string) EmulateFlag {
-	res, err := strconv.ParseBool(str)
-	check(err, `cannot convert "emulate" flag value "`+str+`" to boolean`)
+type InterruptPattern string
 
-	return EmulateFlag(res)
+func NewInterruptPatterns(strArr []string) []InterruptPattern {
+	res := []InterruptPattern{}
+
+	for _, curPattern := range strArr {
+		_, err := regexp.Compile(curPattern)
+		check(err, `interrupt pattern must be valid regular expression, but the pattern `+
+			curPattern+` is invalid`)
+
+		res = append(res, InterruptPattern(curPattern))
+	}
+
+	return res
 }

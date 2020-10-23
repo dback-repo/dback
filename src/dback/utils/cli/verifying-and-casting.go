@@ -11,11 +11,12 @@ import (
 )
 
 type DbackOpts struct {
-	IsEmulation     dockerwrapper.EmulateFlag
-	Matchers        []string
-	ExcludePatterns []dockerwrapper.ExcludePattern
-	ThreadsCount    int
-	Snapshot        string
+	IsEmulation       dockerwrapper.EmulateFlag
+	Matchers          []string
+	ExcludePatterns   []dockerwrapper.ExcludePattern
+	InterruptPatterns []dockerwrapper.InterruptPattern
+	ThreadsCount      int
+	Snapshot          string
 }
 
 const minRestoreArgs = 2
@@ -66,8 +67,9 @@ func VerifyAndCast(req cli.Request) (DbackOpts, []string, resticwrapper.Creation
 	VerifyArgsCount(req)
 
 	dbackOpts := DbackOpts{
-		Matchers:        f[`matcher`],
-		ExcludePatterns: dockerwrapper.NewExcludePatterns(f[`exclude`]),
+		Matchers:          f[`matcher`],
+		ExcludePatterns:   dockerwrapper.NewExcludePatterns(f[`exclude`]),
+		InterruptPatterns: dockerwrapper.NewInterruptPatterns(f[`interrupt`]),
 	}
 
 	if len(f[`threads`]) > 0 {

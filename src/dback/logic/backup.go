@@ -142,6 +142,8 @@ func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
 		return
 	}
 
+	containersForInterrupt := dockerWrapper.GetContainerIDsByNamePatterns(dbackOpts.InterruptPatterns)
+
 	dbackOpts.ThreadsCount = correctThreadsCount(dbackOpts.ThreadsCount, len(mounts))
 
 	startBackupMoment := time.Now()
@@ -149,7 +151,8 @@ func Backup(dockerWrapper *dockerwrapper.DockerWrapper, dbackOpts cli.DbackOpts,
 
 	log.Println()
 	log.Println(`Backup started. Timestamp = ` + timestamp)
-	saveMountsToResticParallel(dockerWrapper, mounts, dbackOpts.ThreadsCount, resticWrapper, timestamp)
+	saveMountsToResticParallel(dockerWrapper, containersForInterrupt, mounts,
+		dbackOpts.ThreadsCount, resticWrapper, timestamp)
 	spacetracker.PrintReport()
 	log.Println(`Backup finished for the mounts above, in ` + secondsFormat(time.Since(startBackupMoment)))
 }
@@ -158,9 +161,10 @@ func startStoppedContainers(dockerWrapper *dockerwrapper.DockerWrapper, stoppedC
 	dockerWrapper.StartContainersByIDs(&stoppedContainers, true)
 }
 
-func saveMountsToResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, mounts []dockerwrapper.Mount,
-	threadsCount int, resticWrapper *resticwrapper.ResticWrapper, timestamp string) {
+func saveMountsToResticParallel(dockerWrapper *dockerwrapper.DockerWrapper, interruptContainers []string,
+	mounts []dockerwrapper.Mount, threadsCount int, resticWrapper *resticwrapper.ResticWrapper, timestamp string) {
 	stoppedContainers := dockerWrapper.SelectRunningContainersByIDs(dockerWrapper.GetContainerIDsOfMounts(mounts))
+	stoppedContainers = append(stoppedContainers, interruptContainers...)
 	dockerWrapper.StopContainersByIDs(stoppedContainers, true)
 
 	wg := sync.WaitGroup{}

@@ -261,3 +261,29 @@ func (t *DockerWrapper) GetDockerInspectXMLByContainerName(containerName string)
 
 	return gohtml.Format(buf.String())
 }
+
+func (t *DockerWrapper) GetContainerIDsByNamePatterns(namePatterns []InterruptPattern) []string {
+	res := []string{}
+	allContainers := t.GetAllContainers()
+
+	for _, curContainer := range allContainers {
+		containerMatch := false
+
+		for _, curNamePattern := range namePatterns {
+			r, err := regexp.Compile(string(curNamePattern))
+			check(err, `Name pattern is not correct regexp`+string(curNamePattern))
+
+			if r.MatchString(t.GetCorrectContainerName(curContainer.Names)) {
+				containerMatch = true
+
+				log.Println(`Interrupt container: ` + t.GetCorrectContainerName(curContainer.Names))
+			}
+		}
+
+		if containerMatch {
+			res = append(res, curContainer.ID)
+		}
+	}
+
+	return res
+}
